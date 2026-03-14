@@ -1,0 +1,97 @@
+{
+  "program_name": "Bachelor of Music in Performance: Wind Instruments and Percussion",
+  "program_type": "Major",
+  "college": "School of Music, Theatre & Dance",
+  "overall_total_credits": 121,
+  "requirement_blocks": [
+    {
+      "block_name": "Music Theory Requirements",
+      "credits_required_for_block": 15,
+      "mandatory_courses": [
+        "Theory 139",
+        "Theory 149",
+        "Theory 140",
+        "Theory 150",
+        "Theory 239",
+        "Theory 249",
+        "Theory 240",
+        "Theory 250"
+      ],
+      "rules_and_restrictions": "Includes one 400-level Theory elective (3 credits). Jazz 220 can be taken in place of Theory 239 and 249. Jazz 221 can be taken in place of Theory 240 and 250. (Jazz 220/221 may not be accepted as a prerequisite for some 400-level Theory courses.)"
+    },
+    {
+      "block_name": "Musicology Requirements",
+      "credits_required_for_block": 11,
+      "mandatory_courses": [
+        "Musicology 139",
+        "Musicology 140",
+        "Musicology 239",
+        "Musicology 240"
+      ],
+      "rules_and_restrictions": "Includes one 400-level Musicology or Theory, or listed Jazz elective (3 credits). Select from Jazz 460, 467, 470, 479 for the 400-level elective."
+    },
+    {
+      "block_name": "Piano Requirements",
+      "credits_required_for_block": 6,
+      "mandatory_courses": [
+        "Piano 110",
+        "Piano 111",
+        "Piano 112"
+      ],
+      "rules_and_restrictions": "Proficiency may waive course requirement for Piano 110, 111, and 112."
+    },
+    {
+      "block_name": "Ensemble Requirements",
+      "credits_required_for_block": 16,
+      "elective_options": [
+        "Ensemble 345",
+        "Ensemble 347",
+        "Ensemble 460",
+        "Ensemble 461",
+        "Ensemble 463",
+        "Ensemble 465",
+        "Ensemble 466",
+        "Ensemble 400",
+        "Ensemble 475"
+      ],
+      "rules_and_restrictions": "2 credits elected each term. Must include three terms of Small Ensemble (Ensemble 461, 463, 465, 466, 400, 475). Ensemble 460: Jazz Ensemble requires department approval."
+    },
+    {
+      "block_name": "Performance Lesson Requirements",
+      "credits_required_for_block": 32,
+      "mandatory_courses": [
+        "Musperf 440"
+      ],
+      "rules_and_restrictions": "Minimum 24 credits of Performance lessons required. Musperf 440: Senior Recital (0 credits) is required for completion. Typically 32 credits are taken over 8 terms (4 credits each)."
+    },
+    {
+      "block_name": "First Year Writing",
+      "credits_required_for_block": 4,
+      "elective_options": [
+        "English 124",
+        "English 125"
+      ],
+      "rules_and_restrictions": "Or equivalent."
+    },
+    {
+      "block_name": "Upper Level Writing",
+      "credits_required_for_block": 3,
+      "rules_and_restrictions": "3-4 credits. Course must be approved by Sweetland Writing Center."
+    },
+    {
+      "block_name": "Race and Ethnicity",
+      "credits_required_for_block": 3,
+      "rules_and_restrictions": "3-4 credits. One course selected from approved courses within LSA (or within SMTD by petition). SMTD RE courses will not count into overall non-SMTD credits."
+    },
+    {
+      "block_name": "Additional Non-Music Electives",
+      "credits_required_for_block": 20,
+      "rules_and_restrictions": "These credits are required to complete the minimum 30 credit hour non-music requirement (after First Year Writing, Upper Level Writing, and Race and Ethnicity). Courses within Arts Administration, Dance, and Theatre may also count as non-Music."
+    },
+    {
+      "block_name": "General Electives",
+      "credits_required_for_block": 11,
+      "rules_and_restrictions": "These credits are general electives to fulfill the overall 121 credit requirement. The sample schedule suggests 9 credits of general electives."
+    }
+  ]
+}
