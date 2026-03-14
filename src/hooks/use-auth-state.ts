@@ -1,4 +1,4 @@
-import { User } from "../generated/prisma/client";
+import { User } from "@prisma/client";
 import { auth } from "../lib/auth/server";
 import { headers } from "next/headers";
 
