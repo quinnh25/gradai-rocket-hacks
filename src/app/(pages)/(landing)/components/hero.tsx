@@ -14,7 +14,7 @@ const wordVariants = {
     y: 0,
     filter: "blur(0px)",
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 180,
       damping: 18,
       delay: 0.08 * i,
