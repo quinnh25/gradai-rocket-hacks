@@ -3,57 +3,67 @@
 Detailed project description goes here.
 
 ```mermaid
+---
+id: ff41ff70-a815-45b0-b665-16646da6c382
+---
 %%{init: {'theme': 'base', 'graph': {'curve': 'basis'}}}%%
 graph TD
     subgraph Phase1_KnowledgeIngestion["Phase 1: Knowledge-Base Initialization (Background)"]
         direction TB
+        %% Nodes for Ingestion
         UM_API[(UM Schedule<br/>of Classes API)]
         Major_Minors_PDFs[/PDFs of Major/Minor<br/>Requirements/]
-        OCR[OCR/Text Extraction Engine]
-        Struct_Rules[Rule-Structuring Model Pydantic]
+        
+        OCR[OCR/Text<br/>Extraction Engine]
+        Struct_Rules[Rule-Structuring<br/>Model Pydantic]
 
+        %% Connections for Ingestion
         UM_API -->|Pull Current Course Data| MasterDB
         Major_Minors_PDFs --> OCR
         OCR -->|Extract Text| Struct_Rules
         Struct_Rules -->|Format Machine-Readable Rules| MasterDB
+        
+        %% Master Knowledge Database
         MasterDB[(Master System<br/>Knowledge Base)]
     end
 
     subgraph Phase2_StudentJourney["Phase 2: The Student Interaction (The App)"]
         direction TB
         Student_Actor((Student)) -->|Logs In| Login_Module
-        UserDB[(User Database)] -->|Fetch Profile/History| Login_Module
+        UserDB[(User<br/>Database)] -->|Fetch Profile/History| Login_Module
         Login_Module -->|Set Active User| Input_GUI
 
         subgraph Input_GUI[Input Gathering GUI]
             direction LR
-            Chat_UI[Chat Menu/Prompt Boxes]
-            Select_Boxes[Select Boxes Majors/Minors]
-            History_Boxes[Taken Classes Table per Sem]
+            Chat_UI[Chat Menu/<br/>Prompt Boxes]
+            Select_Boxes[Select Boxes<br/>Majors/Minors]
+            History_Boxes[Taken Classes<br/>Table per Sem]
         end
 
         Input_GUI -->|Structured JSON Input| Pydantic_User_Input
 
         subgraph Constraint_Processing[Constraint Gathering]
             direction TB
-            Pydantic_User_Input{Validation of User JSON}
+            Pydantic_User_Input{Validation<br/>of User JSON}
             Pydantic_User_Input -->|Validated JSON User State| LLM_Scheduler
             MasterDB -->|Fetch Relevant Course & Rule Data| LLM_Scheduler
         end
 
         subgraph AI_Core[AI Generation & Guardrails]
             direction TB
-            LLM_Scheduler[[AI Optimizer]]
+            LLM_Scheduler[[AI Optimizer<br/>Optimization for Sooner Grad<br/>Apply Double-Counting Rules]]
             LLM_Scheduler -->|Structured LLM Output JSON| Pydantic_LLM_Output
-            Pydantic_LLM_Output{Pydantic Validation of LLM Output}
+            Pydantic_LLM_Output{Pydantic Validation<br/>of LLM Output}
             Pydantic_LLM_Output -->|Validated Plan| Credit_Engine
-            Credit_Engine{{Credit & Rule Check Engine}}
+            
+            Credit_Engine{{Credit & Rule Check Engine<br/>Deterministic Logic<br/>Verify Credits, Majors, Minors reqs}}
         end
         
         Input_GUI -.-|Defines Required Constraints| LLM_Scheduler
         Credit_Engine -->|Updates| UserDB
-        Credit_Engine -->|Valid Final Schedule| Final_Output[/Final Optimized Plan Output/]
+        Credit_Engine -->|Valid Final Schedule| Final_Output[/Final Optimized<br/>Plan Output/]
         Credit_Engine -.->|Errors/Regenerate Request| LLM_Scheduler
+
     end
 
     %% Legend/Styling
