@@ -6,6 +6,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
+// ⚠️ Make sure this path matches where you put your Better-Auth client file!
+import { authClient } from "@/lib/auth/client"; 
+
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
@@ -48,12 +51,20 @@ export default function Navbar() {
             ))}
           </div>
 
+          {/* DESKTOP BUTTONS */}
           <div className="hidden items-center gap-2 md:flex">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Log in</Link>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+            >
+              Log in
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup">Get Started</Link>
+            <Button 
+              size="sm" 
+              onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+            >
+              Get Started
             </Button>
           </div>
 
@@ -83,12 +94,21 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              
+              {/* MOBILE BUTTONS */}
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Log in</Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+                >
+                  Log in
                 </Button>
-                <Button size="sm" asChild>
-                  <Link href="/signup">Get Started</Link>
+                <Button 
+                  size="sm" 
+                  onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+                >
+                  Get Started
                 </Button>
               </div>
             </div>
