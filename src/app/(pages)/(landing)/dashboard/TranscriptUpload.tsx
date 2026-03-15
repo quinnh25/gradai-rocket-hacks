@@ -12,10 +12,6 @@ interface ParseResult {
   courses: Course[];
 }
 
-const GEMINI_API_KEY = "AIzaSyBDDPY1TyHWmLgFJ7Dzv26buEaqp7yz5BQ";
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -76,43 +72,24 @@ export default function TranscriptUpload() {
       const base64 = await toBase64(file);
       setStatus("Analyzing transcript…");
 
-      const resp = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      // Call our backend proxy — API key never touches the browser
+      const resp = await fetch("/api/parse-transcript", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { inline_data: { mime_type: "application/pdf", data: base64 } },
-                {
-                  text: `Extract every course from this transcript. Return ONLY valid JSON — no markdown, no explanation:
-{"courses":[{"subject":"CS","number":"101","semester":"Fall 2023"}]}
-Rules: subject = dept code (e.g. "EECS"), number = course number as string, semester = term + year. Include transfer/AP credit and current enrollments. For any transfer/AP/IB credit, 
-make a separate semester that is simply called Transfer Credit`,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0,
-            response_mime_type: "application/json",
-          },
-        }),
+        body: JSON.stringify({ pdfBase64: base64 }),
       });
 
       if (!resp.ok) {
         const err = await resp.json();
-        throw new Error(err.error?.message ?? `API error ${resp.status}`);
+        throw new Error(err.error ?? `Server error ${resp.status}`);
       }
 
-      const data = await resp.json();
-      const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      if (!raw) throw new Error("Empty response from Gemini");
-
-      const parsed: ParseResult = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      const parsed: ParseResult = await resp.json();
       downloadJSON(parsed, file.name);
       setDone(true);
-      setStatus(`${parsed.courses.length} courses saved to ${file.name.replace(/\.pdf$/i, ".json")}`);
+      setStatus(
+        `${parsed.courses.length} courses saved to ${file.name.replace(/\.pdf$/i, ".json")}`
+      );
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
@@ -141,7 +118,9 @@ make a separate semester that is simply called Transfer Credit`,
           type="file"
           accept=".pdf"
           className="hidden"
-          onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
+          onChange={(e) => {
+            if (e.target.files?.[0]) handleFile(e.target.files[0]);
+          }}
         />
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-lg">
@@ -154,7 +133,9 @@ make a separate semester that is simply called Transfer Credit`,
             </div>
           ) : (
             <>
-              <p className="text-sm font-semibold text-gray-700">Drop your transcript here</p>
+              <p className="text-sm font-semibold text-gray-700">
+                Drop your transcript here
+              </p>
               <p className="text-xs text-gray-400">or click to browse · PDF only</p>
             </>
           )}
@@ -180,7 +161,7 @@ make a separate semester that is simply called Transfer Credit`,
       {/* Disclaimer */}
       <p className="mt-2.5 text-center text-[11px] text-gray-400 leading-relaxed">
         🔒 GradAI will never store your personal data. Your transcript is processed
-        in your browser and never sent to our servers.
+        securely and never stored on our servers.
       </p>
 
       {/* Success / error */}
