@@ -1078,10 +1078,9 @@ if __name__ == "__main__":
     test_user = {
         "major": "Computer Engineering",
         "completed_courses": [
-            "MATH 115", "MATH 116", "ENGR 100", "ENGR 101",
-            "CHEM 130", "CHEM 125", "CHEM 126",
+            "MATH 115", "MATH 116", "MATH 215", "MATH 216", "ENGR 100", "ENGR 101", "EECS 280", "EECS 201", "EECS 215", "EECS 230", "EECS 270", "PHYSICS 140", "PHYSICS 141", "PHYSICS 240", "PHYSICS 241"
         ],
-        "target_credits_this_term": 20,
+        "target_credits_this_term": 18,
         "preferences": {
             "max_workload_percent_per_class": 40,
             "avoid_mornings": False,   # blocks 12:00 AM - 10:00 AM, Mon-Fri
