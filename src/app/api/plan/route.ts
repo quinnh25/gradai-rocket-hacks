@@ -170,6 +170,8 @@ export async function POST(req: NextRequest) {
         throw new Error("No response candidate returned from Gemini.");
       }
 
+      console.log("[GradAI] candidate:", JSON.stringify(candidate, null, 2));
+
       const { parts, role } = candidate.content;
       const finishReason = candidate.finishReason;
 
@@ -179,7 +181,7 @@ export async function POST(req: NextRequest) {
       // Check if this turn contains any function calls
       const functionCalls = parts.filter((p) => p.functionCall);
 
-      if (functionCalls.length === 0 || finishReason === "STOP") {
+      if (functionCalls.length === 0) {
         // No tool calls — extract the text reply and return it
         const textPart = parts.find((p) => p.text);
         const reply = textPart?.text ?? "I wasn't able to generate a response. Please try again.";
