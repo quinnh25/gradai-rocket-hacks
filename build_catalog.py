@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-WORKLOAD_CSV_FILE = "atlas4.csv"
-UNIFIED_CATALOG_FILE = "fall_2026_catalog_batch4.json"
-TARGET_TERM_CODE = "2610"
+WORKLOAD_CSV_FILE = "atlas1.csv"
+UNIFIED_CATALOG_FILE = "winter_2026_catalog_batch1.json"
+TARGET_TERM_CODE = "2570"
 
 # --- UMich API Endpoints ---
 UM_API_BASE_URL = "https://gw.api.it.umich.edu/um/Curriculum/SOC"
