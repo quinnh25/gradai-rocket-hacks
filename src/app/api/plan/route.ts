@@ -26,7 +26,7 @@ import { GEMINI_TOOLS, executeTool } from "@/lib/ai-tools";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_TOOL_ROUNDS = 8; // Safety cap: max tool-call cycles per request
 
