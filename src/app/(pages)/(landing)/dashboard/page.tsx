@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import ProfileBadge from "./profile-badge";
 
 export default async function Dashboard() {
   const session = await auth.api.getSession({
@@ -16,24 +17,8 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
-      
-      {/* Profile badge — top right */}
-      <div className="fixed top-4 right-4">
-        <div className="flex items-center gap-2 bg-green-500/20 border border-green-500 text-green-700 px-4 py-2 rounded-full">
-          {user.image ? (
-            <img
-              src={user.image}
-              alt="Profile"
-              className="w-7 h-7 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-green-200 flex items-center justify-center text-green-700 text-xs font-bold">
-              {user.name?.[0] ?? "?"}
-            </div>
-          )}
-          <span className="text-sm font-medium">{user.email}</span>
-        </div>
-      </div>
+
+      <ProfileBadge email={user.email} image={user.image} name={user.name} />
 
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
         
@@ -55,9 +40,7 @@ export default async function Dashboard() {
           Welcome, {user.name?.split(' ')[0]}!
         </h1>
         
-        <p className="text-gray-500 mb-2 font-medium">
-          {user.email}
-        </p>
+        <p className="text-gray-500 mb-2 font-medium">{user.email}</p>
 
         <p className="text-sm text-green-600 bg-green-50 rounded-full py-1 px-3 inline-block mb-8 border border-green-200">
           ✅ Secure session active
