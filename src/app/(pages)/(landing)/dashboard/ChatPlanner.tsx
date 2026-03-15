@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import WeeklyCalendar from "./WeeklyCalendar";
 import type { ScheduleOutput } from "@/app/api/schedule/route";
+import type { GradPlanOutput } from "./DashboardClient";
 
 interface Message {
   role: "user" | "assistant";
@@ -41,31 +41,32 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-// Parse assistant message — split out schedule-json block if present
-function parseAssistantContent(content: string): {
-  text: string;
-  schedule: ScheduleOutput | null;
-} {
-  const match = content.match(/```schedule-json\n([\s\S]*?)\n```/);
-  if (!match) return { text: content, schedule: null };
+function extractJson<T>(content: string, tag: string): T | null {
+  const match = content.match(new RegExp("```" + tag + "\\n([\\s\\S]*?)\\n```"));
+  if (!match) return null;
+  try { return JSON.parse(match[1]) as T; } catch { return null; }
+}
 
-  try {
-    const schedule = JSON.parse(match[1]) as ScheduleOutput;
-    const text = content.replace(/```schedule-json\n[\s\S]*?\n```/, "").trim();
-    return { text, schedule };
-  } catch {
-    return { text: content, schedule: null };
-  }
+function stripJsonBlocks(content: string): string {
+  return content
+    .replace(/```schedule-json\n[\s\S]*?\n```/g, "")
+    .replace(/```gradplan-json\n[\s\S]*?\n```/g, "")
+    .trim();
 }
 
 const SUGGESTED_PROMPTS = [
-  "What courses should I take next semester?",
+  "What should I take next semester?",
+  "Plan my remaining semesters until graduation",
   "How close am I to finishing my degree?",
-  "Give me my full semester plan until graduation",
   "What EECS electives do you recommend?",
 ];
 
-export default function ChatPlanner({ userId }: { userId: string }) {
+interface ChatPlannerProps {
+  userId: string;
+  onScheduleData: (data: { weeklySchedule?: ScheduleOutput; gradPlan?: GradPlanOutput }) => void;
+}
+
+export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -105,7 +106,22 @@ export default function ChatPlanner({ userId }: { userId: string }) {
       const resp = await fetch(`/api/chats/${chatId}`);
       if (resp.ok) {
         const data = await resp.json();
-        setMessages(data.messages ?? []);
+        const msgs: Message[] = data.messages ?? [];
+        setMessages(msgs);
+        // Restore last schedule data from this chat
+        for (let i = msgs.length - 1; i >= 0; i--) {
+          if (msgs[i].role === "assistant") {
+            const weekly = extractJson<ScheduleOutput>(msgs[i].content, "schedule-json");
+            const grad = extractJson<GradPlanOutput>(msgs[i].content, "gradplan-json");
+            if (weekly || grad) {
+              onScheduleData({
+                ...(weekly ? { weeklySchedule: weekly } : {}),
+                ...(grad ? { gradPlan: grad } : {}),
+              });
+              break;
+            }
+          }
+        }
       }
     } catch { setError("Failed to load chat."); }
     finally { setLoadingMessages(false); }
@@ -159,6 +175,16 @@ export default function ChatPlanner({ userId }: { userId: string }) {
       const finalMessages = [...newMessages, { role: "assistant" as const, content: reply }];
       setMessages(finalMessages);
 
+      // Fire structured data to parent
+      const weekly = extractJson<ScheduleOutput>(reply, "schedule-json");
+      const grad = extractJson<GradPlanOutput>(reply, "gradplan-json");
+      if (weekly || grad) {
+        onScheduleData({
+          ...(weekly ? { weeklySchedule: weekly } : {}),
+          ...(grad ? { gradPlan: grad } : {}),
+        });
+      }
+
       const title = messageText.slice(0, 60) + (messageText.length > 60 ? "…" : "");
 
       if (!activeChatId) {
@@ -194,7 +220,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [input, messages, loading, userId, activeChatId]);
+  }, [input, messages, loading, userId, activeChatId, onScheduleData]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -210,10 +236,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         {sidebarOpen && (
           <>
             <div className="p-3 border-b border-gray-100">
-              <button
-                onClick={startNewChat}
-                className="w-full flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-semibold hover:bg-blue-700 transition-colors"
-              >
+              <button onClick={startNewChat} className="w-full flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-semibold hover:bg-blue-700 transition-colors">
                 <span className="text-base leading-none">+</span>
                 New Chat
               </button>
@@ -230,8 +253,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
                   <div
                     key={chat.id}
                     onClick={() => selectChat(chat.id)}
-                    className={`group relative mx-2 mb-1 rounded-lg px-3 py-2 cursor-pointer transition-colors
-                      ${activeChatId === chat.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-100"}`}
+                    className={`group relative mx-2 mb-1 rounded-lg px-3 py-2 cursor-pointer transition-colors ${activeChatId === chat.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-100"}`}
                   >
                     <p className="text-xs font-medium text-gray-700 truncate pr-5">{chat.title}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(chat.updatedAt)} · {chat.messageCount} msgs</p>
@@ -249,13 +271,10 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         )}
       </div>
 
-      {/* Main area */}
+      {/* Main */}
       <div className="flex flex-col flex-1 overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
-          <button
-            onClick={() => setSidebarOpen((o) => !o)}
-            className="text-gray-400 hover:text-gray-600 transition-colors text-sm"
-          >
+          <button onClick={() => setSidebarOpen((o) => !o)} className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <span className="text-xs text-gray-400 font-medium">
@@ -263,7 +282,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
           </span>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {loadingMessages ? (
             <div className="flex items-center justify-center h-full gap-2 text-gray-400 text-sm">
@@ -275,59 +293,31 @@ export default function ChatPlanner({ userId }: { userId: string }) {
               <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl">🎓</div>
               <div>
                 <p className="text-sm font-semibold text-gray-700">Ask GradAI anything</p>
-                <p className="text-xs text-gray-400 mt-1">I can check your requirements, suggest courses, and build your schedule.</p>
+                <p className="text-xs text-gray-400 mt-1">I can check requirements, suggest courses, and build your schedule.</p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center mt-2">
                 {SUGGESTED_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    onClick={() => send(prompt)}
-                    className="text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-700 text-gray-600 border border-gray-200 hover:border-blue-200 rounded-full px-3 py-1.5 transition-colors"
-                  >
+                  <button key={prompt} onClick={() => send(prompt)} className="text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-700 text-gray-600 border border-gray-200 hover:border-blue-200 rounded-full px-3 py-1.5 transition-colors">
                     {prompt}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            messages.map((m, i) => {
-              if (m.role === "assistant") {
-                const { text, schedule } = parseAssistantContent(m.content);
-                return (
-                  <div key={i} className="flex justify-start">
-                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">G</div>
-                    <div className="max-w-[90%] space-y-3">
-                      {/* Text part */}
-                      {text && (
-                        <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm px-4 py-3 text-sm">
-                          <div className="prose prose-sm max-w-none
-                            prose-headings:font-bold prose-headings:text-gray-800
-                            prose-p:leading-relaxed prose-p:my-1
-                            prose-ul:my-1 prose-li:my-0.5
-                            prose-table:text-xs prose-table:border-collapse
-                            prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300
-                            prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300
-                            prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded
-                            prose-strong:text-gray-900">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
-                      {/* Calendar part */}
-                      {schedule && <WeeklyCalendar schedule={schedule} />}
+            messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                {m.role === "assistant" && (
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">G</div>
+                )}
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-blue-600 text-white rounded-br-sm" : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
+                  {m.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-800 prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:text-xs prose-table:border-collapse prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300 prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300 prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded prose-strong:text-gray-900">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripJsonBlocks(m.content)}</ReactMarkdown>
                     </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={i} className="flex justify-end">
-                  <div className="max-w-[85%] rounded-2xl rounded-br-sm px-4 py-3 text-sm bg-blue-600 text-white">
-                    {m.content}
-                  </div>
+                  ) : m.content}
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
 
           {loading && (
@@ -347,7 +337,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
           <div ref={bottomRef} />
         </div>
 
-        {/* Input */}
         <div className="border-t border-gray-100 px-4 py-3">
           <div className="flex gap-2 items-end">
             <textarea

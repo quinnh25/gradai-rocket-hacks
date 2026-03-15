@@ -98,7 +98,7 @@ Guidelines:
 
 OUTPUT FORMAT RULES — follow these exactly:
 
-1. When generating a SINGLE SEMESTER schedule (user asks about one specific term):
+1. When generating any schedule:
    After your explanation text, append a JSON block in this exact format:
    \`\`\`schedule-json
    {
