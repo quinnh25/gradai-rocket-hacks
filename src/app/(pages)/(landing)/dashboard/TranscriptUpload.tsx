@@ -12,7 +12,7 @@ interface ParseResult {
   courses: Course[];
 }
 
-const GEMINI_API_KEY = "YOUR_API_KEY_HERE";
+const GEMINI_API_KEY = "AIzaSyBDDPY1TyHWmLgFJ7Dzv26buEaqp7yz5BQ";
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
