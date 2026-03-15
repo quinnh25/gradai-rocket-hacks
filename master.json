@@ -1521,5 +1521,110 @@
                 "rules_and_restrictions": "No specific courses listed in this document."
             }
         ]
+    },
+    {
+        "program_name": "General LSA Major Policies",
+        "program_type": "Major",
+        "college": "College of Literature, Science, and the Arts (LSA)",
+        "overall_total_credits": 120,
+        "requirement_blocks": [
+            {
+                "block_name": "Declaration and General Guidelines",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students normally declare a major during the second term of their sophomore year by contacting the appropriate department and meeting with an advisor. Requirements are based on the time of declaration. Majors and minors are listed on the official transcript upon graduation, but not on the diploma unless receiving Honors. Honors students may propose an Individualized Major Program."
+            },
+            {
+                "block_name": "Credit Requirements and Limits",
+                "credits_required_for_block": 24,
+                "rules_and_restrictions": "Course requirements range from 24 to 48 credits at the 200-level and above. No more than 60 credits in a major (including one department and required cognates) may count toward the 120 degree credits. For departments with multiple SUBJECTs, the 60-credit limit applies to the whole department. No more than 60 credits in one non-English language may count, unless excess credits meet the language requirement. Area, interdepartmental, or special majors may count no more than 60 credits in any one department."
+            },
+            {
+                "block_name": "Grading Policies and GPA Requirements",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Major courses and required cognates cannot be taken Pass/Fail. A department may allow Credit/No Credit for specific courses, but all others must be taken for a grade. An overall GPA of at least 2.0 is required in all courses taken in the major (including prerequisites, electives, and cognates). Honors majors require an overall GPA of 3.4 or higher, depending on the department."
+            },
+            {
+                "block_name": "Course Sharing and Overlap Rules",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "A maximum of one course may be shared between a major and a minor. No course may be shared between a major and a supplemental studies program. Courses from the major department cannot count toward distribution plans unless the student is pursuing multiple majors (courses from one major can fulfill distribution). Major courses may also meet the Upper-Level Writing Requirement, Race & Ethnicity Requirement, or Quantitative Reasoning Requirement."
+            },
+            {
+                "block_name": "Test Credits Policy",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Test credits may not be used to meet the requirements of a major, but they may be used to meet prerequisites (unless a departmental exception is granted by the LSA Curriculum Committee)."
+            }
+        ]
+    },
+    {
+        "program_name": "LSA Multiple Majors, Honors, and Additional Policies",
+        "program_type": "Policy",
+        "college": "College of Literature, Science, and the Arts (LSA)",
+        "overall_total_credits": 0,
+        "requirement_blocks": [
+            {
+                "block_name": "Multiple/Double Majors",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students must meet all requirements for both majors. Courses, including cognates, from one major may be used to satisfy requirements of the second major when appropriate. Courses from one major may be used toward distribution. Plans must be developed and approved by a department advisor."
+            },
+            {
+                "block_name": "Second Major after Graduation",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students may complete a second major after graduation by registering as a non-degree candidate through Admissions. An advisor must submit a release form upon completion. Students cannot add, complete, or declare a minor after graduation, but minor credits can be used toward an additional major (the minor is replaced by the major on the transcript). Degree types (e.g., A.B. to B.S.) cannot be changed after graduation."
+            },
+            {
+                "block_name": "Departmental Honors Majors",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students typically apply at the beginning of their third year. Requires a cumulative GPA of 3.4 to graduate with Honors (some departments require higher). Must complete at least 58 credits in residence. Requires completion of a Senior Honors thesis involving original research under a faculty mentor (with few exceptions like Math and CS), and sometimes comprehensive exams. Thesis work may receive a 'Y' (work in progress) grade until completion. Departments recommend 'No Honors' (if < 3.4 GPA or standards not met), 'Honors', 'High Honors', or 'Highest Honors'. Exceptions to the GPA minimum can be petitioned with compelling evidence."
+            },
+            {
+                "block_name": "Honors Individualized Major Program (HIMP)",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Intended for exceptional students pursuing an interdepartmental/interdisciplinary liberal arts program not currently available. Must have an identifiable academic focus within LSA, disciplinary base, unifying theme, and culminate in an Honors thesis. Requires an overall GPA of 3.5, and typically a 3.7 in HIMP-related courses. Students must submit a formal prospectus to the Honors Academic Board. Contact the Associate Director of the Honors Program to begin."
+            },
+            {
+                "block_name": "Honors Thesis Additional Policies (Grants, ULWR, Archives)",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Seniors are eligible for thesis/travel grants (Graf, Hellman, Davidson, Kennedy, Cutcheon). The Senior Thesis can be used to satisfy the Upper-Level Writing Requirement (ULWR) by submitting a Sweetland Center for Writing Thesis Intent Form early in the finishing term. Graduates are encouraged to deposit their completed thesis in the Deep Blue electronic archive."
+            }
+        ]
+    },
+    {
+        "program_name": "General Minor Policies",
+        "program_type": "Policy",
+        "college": "College of Literature, Science, and the Arts (LSA) and Participating Units",
+        "overall_total_credits": 15,
+        "requirement_blocks": [
+            {
+                "block_name": "Declaration and Basic Requirements",
+                "credits_required_for_block": 15,
+                "rules_and_restrictions": "Electing a minor is optional, and there is no limit to the number of minors a student may elect. Must require at least 15 credits, show structure and coherence, and contain upper-level courses. At least 9 out of the 15 credits must be taken in residence. Noted on transcript, not diploma. Plan must be developed and approved with an advisor. Not available to B.G.S. degree students. Individually designed minors are not allowed."
+            },
+            {
+                "block_name": "Grading and GPA Requirements",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students must earn an overall GPA of at least 2.0 in the minor, including necessary prerequisites. Pass/fail grading is not permitted for minor courses. Departments may allow credit/no credit for specific courses, but all others must be taken for a grade."
+            },
+            {
+                "block_name": "Course Sharing and Overlap Rules",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "No course may be shared between multiple minors or between a minor and a supplemental studies program. A maximum of one course may be shared between a minor and a major (with multiple majors, the shared course can be different for each major or the same for multiple majors). Minor prerequisites can overlap with major prerequisites. Minor courses can also meet area distribution plans, Language, Upper-Level Writing, Race and Ethnicity, or Quantitative Reasoning requirements."
+            },
+            {
+                "block_name": "Test Credits and Post-Graduation Policies",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Test credits may be used to meet prerequisites, but not the requirements of the minor itself. Minors cannot be added, completed, or declared after graduation. However, minor credits can be used toward an additional major post-graduation (the minor is then replaced by the major on the transcript)."
+            },
+            {
+                "block_name": "LSA Minors for Non-LSA Students",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Students in other U-M units (Architecture & Urban Planning, Art & Design, Business, Dental Hygiene, Education, Engineering, Information, Kinesiology, Music, Theatre & Dance, Natural Resources, Nursing, Pharmacy, Public Health, Public Policy) may pursue LSA minors. Limitations may apply; students must consult their home unit advisor."
+            },
+            {
+                "block_name": "Minors Offered by Other Academic Units",
+                "credits_required_for_block": 0,
+                "rules_and_restrictions": "Other units offering minors include: Art & Design (Art and Design); Ross (Business); Education (Education for Empowerment); Engineering (Multidisciplinary design, Electrical engineering, Computer science, Climate and space sciences. *Note: International minor and Environmental engineering are not open to LSA students*); Kinesiology (Movement science - *open only to SMTD dance majors*); SMTD (Music, Global theatre and ethnic studies, Performing arts management, Design and production); Social Work (Community Action and Social Change); Medical School (Human Anatomy and Physiology)."
+            }
+        ]
     }
+
 ]
