@@ -321,8 +321,27 @@ def slim_section_for_ai(section: dict) -> dict:
     }
 
 
+# Phrases that signal a description contains major/audience restrictions.
+_AUDIENCE_SIGNALS = (
+    "intended for", "designed for", "open to", "not open to",
+    "should take", "recommended for", "students in", "majors only",
+    "engineering students", "lsa students", "honors students",
+    "not available to", "may not be taken by", "credit will not be given",
+    "not for credit", "duplicate credit",
+)
+
+def _has_audience_restriction(desc: str) -> bool:
+    low = desc.lower()
+    return any(sig in low for sig in _AUDIENCE_SIGNALS)
+
+
 def slim_course_for_ai(code: str, data: dict) -> dict:
-    """Slim a course entry for Gemini — shows families but no raw availability blob."""
+    """Slim a course entry for Gemini.
+
+    Descriptions containing audience/restriction language are sent in full
+    (up to 600 chars) so Gemini can judge major-appropriateness.
+    All other descriptions are truncated to 200 chars to save tokens.
+    """
     families = group_sections_by_family(data.get("availability", []))
     slim_families = [
         {
@@ -335,12 +354,16 @@ def slim_course_for_ai(code: str, data: dict) -> dict:
     enforced = (prereqs.get("enforced") or "N/A").strip() if isinstance(prereqs, dict) else "N/A"
     advisory = (prereqs.get("advisory") or "N/A").strip() if isinstance(prereqs, dict) else "N/A"
 
+    raw_desc  = (data.get("course_description") or "").strip()
+    desc_limit = 600 if _has_audience_restriction(raw_desc) else 200
+    description = raw_desc[:desc_limit]
+
     entry = {
         "code":             code,
         "title":            data.get("course_title") or data.get("title", ""),
         "credits":          data.get("credits", 0),
         "workload_percent": data.get("metrics", {}).get("workload_percent", "N/A"),
-        "description":      (data.get("course_description") or "")[:150],
+        "description":      description,
         "section_families": slim_families,
         "prereq_enforced":  enforced,
     }
@@ -568,11 +591,16 @@ You MUST check this before selecting any course:
   the student's completed_courses list.
 - If the student does NOT satisfy the enforced prereq, do NOT select that course.
 - Common patterns to interpret:
-    "EECS 280 or 183"       → student needs at least one of those
-    "(MATH 115); (MATH 116)" → student needs BOTH groups
-    "C or better"            → grade clause, NOT a course — ignore it
-    "No credit in MATH 216"  → student must NOT have MATH 216
-    "preceded or accompanied by X" → satisfied if X is already completed
+    "EECS 280 or 183"        → student needs at least one of those in completed_courses
+    "(MATH 115); (MATH 116)" → student needs BOTH groups in completed_courses
+    "C or better"            → grade clause, NOT a course requirement — ignore it
+    "No credit in MATH 216"  → student must NOT have MATH 216 in completed_courses
+    "preceded or accompanied by X" → X must be in completed_courses ALREADY.
+        Courses selected THIS term do NOT count — the student has not passed them yet.
+        If X is not in completed_courses, this prereq is NOT satisfied.
+- IMPORTANT: "completed_courses" means courses the student has ALREADY PASSED in
+  prior terms. Courses you are selecting right now are NOT completed yet and cannot
+  satisfy any prerequisite for another course in the same selection.
 - If prereq_enforced is "N/A" or empty, the course has no prereq — select freely.
 - If a course has "prereq_advisory", you may still select it but note the warning
   in the reasoning field.
@@ -586,13 +614,26 @@ average workload, then free electives only if credits still needed.
 BREADTH RULE: pick from at least 3 different blocks before taking a second
 course from any single block.
 
+=== DESCRIPTION CHECK (run before selecting any course) ===
+Read the "description" field of every course you are considering.
+If the description contains language that restricts the audience — for example:
+  - "Engineering students should take ENGR 101 instead"
+  - "Not open to students in the College of Engineering"
+  - "Intended for LSA students only"
+  - "Credit will not be given to students who have completed X"
+  - "Designed for non-science majors"
+Then check whether the student's major fits that audience. If the course is
+explicitly NOT for the student's major or college, do NOT select it — even if
+it appears in the requirement block list. Note this in your reasoning.
+
 === HARD RULES ===
 1. NEVER select a course whose prereq_enforced the student does not satisfy.
-2. Never recommend a course already in completed_courses.
-3. Never exceed max_workload_per_class.
-4. Reach approximately target_credits total.
-5. Only pick from candidate_courses.
-6. If conflicting_courses is provided: those courses have no valid time slots —
+2. NEVER select a course whose description explicitly excludes the student's major/college.
+3. Never recommend a course already in completed_courses.
+4. Never exceed max_workload_per_class.
+5. Reach approximately target_credits total.
+6. Only pick from candidate_courses.
+7. If conflicting_courses is provided: those courses have no valid time slots —
    replace ONLY them with alternatives. Keep all other selections.
 
 OUTPUT: strictly valid JSON, no markdown.
@@ -616,7 +657,8 @@ OUTPUT: strictly valid JSON, no markdown.
 
 
 def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
-                           conflicting_courses=None) -> dict:
+                           conflicting_courses=None,
+                           shelved: dict | None = None) -> dict:
     meta          = filtered_catalog.get("_meta", {})
     priority_map  = meta.get("priority_map", {})   # {code: urgency_score float}
     block_map     = meta.get("block_map", {})       # {code: block_name}
@@ -675,13 +717,17 @@ def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
     }
 
     if conflicting_courses:
-        prompt["conflicting_courses"] = conflicting_courses
+        # conflicting_courses is now a single course code string (the shelved course)
+        prompt["replace_course"]  = conflicting_courses
         prompt["instruction"] = (
-            f"The following courses have NO valid sections that fit the student's "
-            f"time constraints (preference blocks, other courses): {conflicting_courses}. "
-            "Replace ONLY these courses with alternatives from the same or adjacent "
-            "urgency-ranked blocks. Keep all other previously-selected courses if possible."
+            f"The course {conflicting_courses!r} has been shelved because it had no "
+            f"valid sections that fit the student's time constraints. "
+            f"Remove it from your selection and replace it with ONE alternative "
+            f"from candidate_courses that: (a) satisfies a similar requirement block, "
+            f"(b) the student meets the prereqs for, and (c) is not in shelved_courses. "
+            f"Keep all other courses from the previous selection unchanged if possible."
         )
+        prompt["shelved_courses"] = list(shelved.keys()) if shelved else []
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -890,38 +936,84 @@ def build_schedule_with_ai(user_profile: dict, rules_db: list, catalog_db: dict)
     if not preference_blocks:
         print("   No preference blocks (all times open)")
 
-    # --- Feedback loop ---
-    conflicting_courses = None
-    previously_failed   = []
+    # -------------------------------------------------------------------------
+    # Shelf-based feedback loop
+    #
+    # Instead of telling Gemini to permanently avoid conflicting courses,
+    # we shelve only the SINGLE most-conflicted course per round and ask
+    # Gemini to replace just that one. Shelved courses are un-shelved if we
+    # run out of fresh alternatives, giving them another chance later.
+    #
+    # shelved:    {course_code: reason}  — temporarily excluded from catalog
+    # prev_selections: list of frozensets — guards against exact repeats
+    # -------------------------------------------------------------------------
+    shelved          = {}   # {code: reason_string}
+    prev_selections  = []
+    to_replace       = None  # single code Gemini should swap out this round
+
+    def catalog_without_shelved():
+        """Return filtered_catalog with shelved courses removed."""
+        meta = filtered_catalog.get("_meta", {})
+        trimmed = {k: v for k, v in filtered_catalog.items()
+                   if k not in shelved}
+        # Rebuild _meta so urgency/block maps still work (just exclude shelved)
+        trimmed["_meta"] = {
+            "priority_map":  {k: v for k, v in meta.get("priority_map", {}).items()
+                              if k not in shelved},
+            "block_map":     {k: v for k, v in meta.get("block_map", {}).items()
+                              if k not in shelved},
+            "scored_blocks": meta.get("scored_blocks", []),
+            "filler_codes":  [c for c in meta.get("filler_codes", [])
+                              if c not in shelved],
+        }
+        return trimmed
 
     for attempt in range(1, MAX_RETRY_ROUNDS + 1):
         print(f"\n{'='*55}")
         print(f"Round {attempt} - Asking Gemini to select courses...")
+        if shelved:
+            print(f"   Currently shelved: {list(shelved.keys())}")
 
-        ai_result  = gemini_select_courses(user_profile, filtered_catalog, conflicting_courses)
+        active_catalog = catalog_without_shelved()
+        ai_result  = gemini_select_courses(user_profile, active_catalog,
+                                          conflicting_courses=to_replace,
+                                          shelved=shelved)
         selections = ai_result.get("selections", [])
 
         if not selections:
-            print("   Gemini returned no selections. Stopping.")
+            print("   Gemini returned no selections.")
+            # If we have shelved courses, un-shelve one and retry
+            if shelved:
+                oldest = next(iter(shelved))
+                print(f"   Un-shelving {oldest} to try again.")
+                del shelved[oldest]
+                to_replace = None
+                continue
             break
 
         selected_codes = frozenset(s["course_code"] for s in selections)
         print(f"   Gemini selected: {sorted(selected_codes)}")
 
-        # Guard against infinite loop (Gemini keeps picking the same broken set)
-        if selected_codes in previously_failed:
-            print("   Gemini is repeating a previously failed course set. Stopping.")
+        # Guard against exact repeat
+        if selected_codes in prev_selections:
+            print("   Gemini repeated a previously tried set.")
+            if shelved:
+                oldest = next(iter(shelved))
+                print(f"   Un-shelving {oldest} and re-trying.")
+                del shelved[oldest]
+                to_replace = None
+                continue
             break
-        previously_failed.append(selected_codes)
+        prev_selections.append(selected_codes)
 
         print("Running backtracking scheduler...")
         result = find_valid_schedule(selections, filtered_catalog, preference_blocks)
 
         if result["success"]:
             print(f"\nValid schedule found on attempt {attempt}!")
-            result["attempt"]  = attempt
-            result["ai_notes"] = ai_result.get("notes", "")
-            # prereqs enforced by Gemini during selection — no separate blocked list
+            result["attempt"]        = attempt
+            result["ai_notes"]       = ai_result.get("notes", "")
+            result["shelved_courses"] = shelved  # inform caller what was set aside
             result["active_preference_blocks"] = [
                 {
                     "label": b.label,
@@ -932,15 +1024,46 @@ def build_schedule_with_ai(user_profile: dict, rules_db: list, catalog_db: dict)
                 for b in preference_blocks
             ]
             return result
-        else:
-            print(f"   Conflict detected: {result['conflicts']}")
-            print(f"   Telling Gemini to avoid: {result['conflicts']}")
-            conflicting_courses = result["conflicts"]
 
+        # ── Scheduler failed — shelve one course, keep the rest ──────────────
+        conflicts = result.get("conflicts", [])
+        all_codes = result.get("all_selected", [c["course_code"] for c in selections])
+
+        # Pick the course with the fewest valid combos as the one to shelve —
+        # it is most likely responsible for the deadlock
+        meta       = filtered_catalog.get("_meta", {})
+        pref_only  = list(preference_blocks)
+
+        def combo_count_outside_prefs(code):
+            data     = filtered_catalog.get(code, {})
+            families = group_sections_by_family(data.get("availability", []))
+            combos   = [c for fam in families for c in build_section_combos(fam)]
+            viable   = 0
+            for (lec, linked) in combos:
+                blocks = []
+                for sec in [lec] + linked:
+                    blocks.extend(section_to_timeblocks(sec, code))
+                if not any(b.conflicts_with(p) for b in blocks for p in pref_only):
+                    viable += 1
+            return viable
+
+        # Prefer shelving from the reported conflict list; break ties by fewest combos
+        candidates = conflicts if conflicts else all_codes
+        to_shelve  = min(candidates, key=combo_count_outside_prefs)
+
+        reason = (f"Shelved after round {attempt}: "
+                  f"fewest viable sections among {candidates}")
+        shelved[to_shelve] = reason
+        print(f"   Shelving {to_shelve} ({reason[:60]})")
+
+        # Ask Gemini to replace only the shelved course next round
+        to_replace = to_shelve
+
+    # Exhausted all attempts
     return {
         "success":        False,
         "error":          f"Could not build a valid schedule after {MAX_RETRY_ROUNDS} attempts.",
-        "last_conflicts": conflicting_courses,
+        "shelved_courses": shelved,
     }
 
 
@@ -958,11 +1081,11 @@ if __name__ == "__main__":
             "MATH 115", "MATH 116", "ENGR 100", "ENGR 101",
             "CHEM 130", "CHEM 125", "CHEM 126",
         ],
-        "target_credits_this_term": 16,
+        "target_credits_this_term": 20,
         "preferences": {
-            "max_workload_percent_per_class": 80,
-            "avoid_mornings": True,   # blocks 12:00 AM - 10:00 AM, Mon-Fri
-            "free_fridays":   True,   # blocks all day Friday
+            "max_workload_percent_per_class": 40,
+            "avoid_mornings": False,   # blocks 12:00 AM - 10:00 AM, Mon-Fri
+            "free_fridays":   False,   # blocks all day Friday
             # Optional custom blocks:
             # "custom_blocks": [
             #     {

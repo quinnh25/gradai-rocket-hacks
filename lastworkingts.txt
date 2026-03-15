@@ -35,15 +35,27 @@ def load_json_db(filepath):
 # =============================================================================
 
 def extract_needed_course_codes(major_rules: dict, completed_courses: set) -> set:
+    # Normalize the completed set so "MATH115", "math 115", "MATH 115" all match
+    completed_norm = {re.sub(r' +', ' ', re.sub(r'([A-Z])(\d)', r'\1 \2', c.strip().upper())) for c in completed_courses}
     needed = set()
     for block in major_rules.get("requirement_blocks", []):
         for code in block.get("mandatory_courses", []):
-            if isinstance(code, str) and code not in completed_courses:
+            if isinstance(code, str) and code.upper() not in completed_norm:
                 needed.add(code)
         for code in block.get("elective_options", []):
-            if isinstance(code, str) and code not in completed_courses:
+            if isinstance(code, str) and code.upper() not in completed_norm:
                 needed.add(code)
     return needed
+
+
+
+
+def normalize_code(code: str) -> str:
+    """Normalize a course code to uppercase with one space: 'eecs280' -> 'EECS 280'."""
+    code = code.strip().upper()
+    code = re.sub(r'([A-Z])(\d)', r'\1 \2', code)
+    code = re.sub(r' +', ' ', code)
+    return code
 
 
 # =============================================================================
@@ -186,30 +198,108 @@ def section_to_timeblocks(section: dict, label_prefix: str) -> list:
 
 def group_sections_by_family(availability: list) -> list:
     """
-    Group Open sections by the leading digit of SectionNumber.
-    Each family: one LEC + optional LAB/DIS/REC sections that must be taken together.
+    Group Open sections into (lecture, [linked_section, ...]) families.
+
+    Grouping rule: a LAB/DIS/REC belongs to the lecture whose section number
+    shares the same HUNDREDS digit.
+      LEC 001 → family 0 → owns LAB 011, 012, 013 ...
+      LEC 002 → family 0 → owns LAB 021, 022 ...  (different lecture, same hundred)
+
+    Wait — two lectures in the same hundred means we need to separate them.
+    Correct rule: each LEC is its own "parent"; linked sections are assigned to
+    the nearest LEC whose hundreds digit matches.
+
+    Implemented as:
+      1. Collect all LECs and all non-LEC sections separately.
+      2. For each non-LEC section, find the LEC whose section number shares
+         the same hundreds digit (floor(num / 10) == floor(lec_num / 10) for
+         two-digit suffixes, or same leading digit for three-digit numbers).
+      3. If no matching LEC exists, try the closest LEC by number.
+      4. Return one entry per LEC: {"lecture": sec, "linked": [secs...]}.
+
+    This means the scheduler gets one entry per lecture, and must independently
+    pick which linked sections to pair with it (handled in build_section_combos).
     """
-    families = defaultdict(lambda: {"lecture": None, "linked": []})
+    lectures = []
+    linked   = []
 
     for s in availability:
         if s.get("Status") != "Open":
             continue
-        raw_num    = str(s.get("SectionNumber", "0"))
-        family_key = raw_num[0]
-        stype      = s.get("SectionType", "").upper()
-
+        stype = s.get("SectionType", "").upper()
         if stype == "LEC":
-            families[family_key]["lecture"] = s
+            lectures.append(s)
         else:
-            families[family_key]["linked"].append(s)
+            linked.append(s)
 
-    result = []
-    for fkey in sorted(families.keys()):
-        fam = families[fkey]
-        if fam["lecture"] is None:
-            continue
-        result.append({"lecture": fam["lecture"], "linked": fam["linked"]})
-    return result
+    if not lectures:
+        return []
+
+    def padded(s):
+        return str(s.get("SectionNumber", "000")).strip().zfill(3)
+
+    # Key each LEC by its full padded number
+    lec_by_num = {padded(lec): lec     for lec in lectures}
+    lec_linked = {padded(lec): []      for lec in lectures}
+
+    # A lab/dis/rec belongs to the LEC whose last two digits match its first two.
+    # e.g. LAB "011" → prefix "01" → matches LEC "001" (last two digits = "01")
+    #      LAB "021" → prefix "02" → matches LEC "002" (last two digits = "02")
+    # For 4-digit section numbers, use first digit to match LEC first digit.
+    for s in linked:
+        s_pad   = padded(s)
+        s_prefix = s_pad[:2]            # e.g. "01" for lab 011
+        # Find LEC whose padded number ends with s_prefix
+        match = next(
+            (k for k in lec_by_num if k[1:] == s_prefix   # "001"[1:] == "01"
+             or k[:2] == s_prefix),                         # fallback: first two
+            None
+        )
+        if match is None:
+            # Numerical fallback: assign to closest LEC
+            s_int   = int(s_pad)
+            match   = min(lec_by_num.keys(), key=lambda k: abs(int(k) - s_int))
+        lec_linked[match].append(s)
+
+    return [
+        {"lecture": lec_by_num[k], "linked": lec_linked[k]}
+        for k in sorted(lec_by_num.keys())
+    ]
+
+
+def build_section_combos(family: dict) -> list:
+    """
+    Expand a (lecture, linked_sections) family into every valid
+    lecture × linked-section combination the scheduler should try.
+
+    For EECS 270 with LEC 001 and LABs 011-018:
+      → [(LEC001, LAB011), (LEC001, LAB012), ..., (LEC001, LAB018)]
+
+    If there are multiple linked-section types (e.g. both a LAB and a DIS),
+    we produce the cartesian product across types.
+
+    If there are no linked sections, returns [(lecture, [])] — just the lecture.
+    """
+    from itertools import product as iproduct
+
+    lec    = family["lecture"]
+    linked = family["linked"]
+
+    if not linked:
+        return [(lec, [])]
+
+    # Group linked sections by type
+    by_type = defaultdict(list)
+    for s in linked:
+        by_type[s.get("SectionType", "OTHER").upper()].append(s)
+
+    # Cartesian product across types: pick one section per type
+    type_lists = list(by_type.values())
+    combos = []
+    for combo in iproduct(*type_lists):
+        combos.append((lec, list(combo)))
+
+    return combos
 
 
 # =============================================================================
@@ -231,8 +321,27 @@ def slim_section_for_ai(section: dict) -> dict:
     }
 
 
+# Phrases that signal a description contains major/audience restrictions.
+_AUDIENCE_SIGNALS = (
+    "intended for", "designed for", "open to", "not open to",
+    "should take", "recommended for", "students in", "majors only",
+    "engineering students", "lsa students", "honors students",
+    "not available to", "may not be taken by", "credit will not be given",
+    "not for credit", "duplicate credit",
+)
+
+def _has_audience_restriction(desc: str) -> bool:
+    low = desc.lower()
+    return any(sig in low for sig in _AUDIENCE_SIGNALS)
+
+
 def slim_course_for_ai(code: str, data: dict) -> dict:
-    """Slim a course entry for Gemini — shows families but no raw availability blob."""
+    """Slim a course entry for Gemini.
+
+    Descriptions containing audience/restriction language are sent in full
+    (up to 600 chars) so Gemini can judge major-appropriateness.
+    All other descriptions are truncated to 200 chars to save tokens.
+    """
     families = group_sections_by_family(data.get("availability", []))
     slim_families = [
         {
@@ -241,14 +350,26 @@ def slim_course_for_ai(code: str, data: dict) -> dict:
         }
         for fam in families
     ]
-    return {
+    prereqs  = data.get("prerequisites", {})
+    enforced = (prereqs.get("enforced") or "N/A").strip() if isinstance(prereqs, dict) else "N/A"
+    advisory = (prereqs.get("advisory") or "N/A").strip() if isinstance(prereqs, dict) else "N/A"
+
+    raw_desc  = (data.get("course_description") or "").strip()
+    desc_limit = 600 if _has_audience_restriction(raw_desc) else 200
+    description = raw_desc[:desc_limit]
+
+    entry = {
         "code":             code,
         "title":            data.get("course_title") or data.get("title", ""),
         "credits":          data.get("credits", 0),
         "workload_percent": data.get("metrics", {}).get("workload_percent", "N/A"),
-        "description":      (data.get("course_description") or "")[:200],
+        "description":      description,
         "section_families": slim_families,
+        "prereq_enforced":  enforced,
     }
+    if advisory and advisory.upper() not in ("N/A", "NONE", ""):
+        entry["prereq_advisory"] = advisory
+    return entry
 
 
 # Priority tiers sent to Gemini so it knows what to pick first
@@ -408,6 +529,8 @@ def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) 
         print(f"     [{b['urgency']:.2f}] {b['block_name']}  "
               f"({len(b['mandatory'])} mandatory, {len(b['elective_options'])} elective options)")
 
+    # ── Build filtered catalog (workload + availability gates only) ─────────────
+    # Prereqs are passed to Gemini as data fields and enforced during selection.
     filtered     = {}
     filler_codes = set()
 
@@ -417,7 +540,7 @@ def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) 
             if float(raw_wl) > wl_cap:
                 return False
         except (ValueError, TypeError):
-            pass  # unknown workload — keep it
+            pass
         open_secs = [s for s in data.get("availability", []) if s.get("Status") == "Open"]
         if not open_secs:
             return False
@@ -426,12 +549,10 @@ def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) 
         filtered[code] = entry
         return True
 
-    # Add major-required courses
     for code in priority_map:
         if code in catalog_db:
             try_add(code, catalog_db[code], max_workload)
 
-    # Add light LSA filler courses (IB breadth candidates)
     for code, data in catalog_db.items():
         if code in filtered or code in completed:
             continue
@@ -439,7 +560,7 @@ def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) 
             if try_add(code, data, filler_wl):
                 filler_codes.add(code)
 
-    major_count  = len(filtered) - len(filler_codes)
+    major_count = len(filtered) - len(filler_codes)
     print(f"   Courses available this term : {len(filtered)} "
           f"({major_count} major-required, {len(filler_codes)} breadth fillers)")
 
@@ -462,55 +583,73 @@ You are an Academic Requirements Advisor for the University of Michigan.
 Your ONLY job is to select which courses the student should take this term.
 A separate Python algorithm handles time conflicts — ignore scheduling entirely.
 
-You will receive a ranked list of requirement blocks (ranked_requirement_blocks),
-sorted by URGENCY SCORE from highest to lowest. Urgency is computed structurally:
-blocks with all-mandatory courses and no elective choice score highest; large
-pick-N-from-M elective pools score lowest. This ranking works for ANY major at
-ANY college — you do not need to know what the courses are called.
+=== PREREQUISITE RULE (most important) ===
+Every course in candidate_courses has a "prereq_enforced" field.
+You MUST check this before selecting any course:
 
-=== SELECTION PROCESS (follow in order) ===
+- Read the enforced prereq string and cross-reference it against
+  the student's completed_courses list.
+- If the student does NOT satisfy the enforced prereq, do NOT select that course.
+- Common patterns to interpret:
+    "EECS 280 or 183"       → student needs at least one of those
+    "(MATH 115); (MATH 116)" → student needs BOTH groups
+    "C or better"            → grade clause, NOT a course — ignore it
+    "No credit in MATH 216"  → student must NOT have MATH 216
+    "preceded or accompanied by X" → satisfied if X is already completed
+- If prereq_enforced is "N/A" or empty, the course has no prereq — select freely.
+- If a course has "prereq_advisory", you may still select it but note the warning
+  in the reasoning field.
 
-STEP 1 — Work through ranked_requirement_blocks from top to bottom (highest
-urgency first). For each block, pick the mandatory courses first. Only pick
-elective_options from that block if mandatory courses are exhausted or already
-completed. Do NOT skip to a lower-urgency block while a higher-urgency block
-still has uncovered mandatory courses.
+=== SELECTION PRIORITY ===
+You will receive ranked_requirement_blocks sorted by urgency (highest first).
+Work top-to-bottom: fill mandatory courses from the highest-urgency blocks first,
+then program electives, then 1-2 breadth fillers (is_filler: true) to lower
+average workload, then free electives only if credits still needed.
 
-STEP 2 — After covering the highest-urgency blocks, if credits remain, add
-1-2 breadth filler courses (is_filler: true in candidate_courses). These are
-light LSA courses that bring the average workload down and count toward
-graduation. Use them as balancing tools, not as primary selections.
+BREADTH RULE: pick from at least 3 different blocks before taking a second
+course from any single block.
 
-STEP 3 — Only fill remaining credit slots with elective options if Steps 1-2
-did not reach target_credits.
+=== DESCRIPTION CHECK (run before selecting any course) ===
+Read the "description" field of every course you are considering.
+If the description contains language that restricts the audience — for example:
+  - "Engineering students should take ENGR 101 instead"
+  - "Not open to students in the College of Engineering"
+  - "Intended for LSA students only"
+  - "Credit will not be given to students who have completed X"
+  - "Designed for non-science majors"
+Then check whether the student's major fits that audience. If the course is
+explicitly NOT for the student's major or college, do NOT select it — even if
+it appears in the requirement block list. Note this in your reasoning.
 
 === HARD RULES ===
-1. Never recommend a course the student has already completed.
-2. Never exceed max_workload_per_class for any individual course.
-3. Reach approximately target_credits total.
-4. Only pick courses present in candidate_courses.
-5. BREADTH: select from at least 3 different requirement blocks before
-   picking a second course from any single block.
-6. If conflicting_courses is provided, avoid ALL of them and substitute
-   with alternatives from the same or adjacent urgency-ranked blocks.
+1. NEVER select a course whose prereq_enforced the student does not satisfy.
+2. NEVER select a course whose description explicitly excludes the student's major/college.
+3. Never recommend a course already in completed_courses.
+4. Never exceed max_workload_per_class.
+5. Reach approximately target_credits total.
+6. Only pick from candidate_courses.
+7. If conflicting_courses is provided: those courses have no valid time slots —
+   replace ONLY them with alternatives. Keep all other selections.
 
-OUTPUT: strictly valid JSON, no markdown fences.
+OUTPUT: strictly valid JSON, no markdown.
 {
     "selections": [
         {
-            "course_code": "MATH 215",
-            "course_title": "Calculus III",
+            "course_code": "MATH 216",
+            "course_title": "Introduction to Differential Equations",
             "credits": 4,
-            "workload_percent": 55,
-            "urgency_score": 0.85,
+            "workload_percent": 54,
+            "urgency_score": 0.9,
             "requirement_block": "Subjects Required by all Programs",
             "is_filler": false,
-            "reasoning": "Highest-urgency block; mandatory course with no elective substitutes."
+            "prereq_satisfied": true,
+            "reasoning": "Mandatory core course; prereq MATH 116 is completed."
         }
     ],
-    "notes": "Optional caveats about tradeoffs or missing requirements."
+    "notes": "Optional caveats."
 }
 """
+
 
 def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
                            conflicting_courses=None) -> dict:
@@ -526,16 +665,18 @@ def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
         if code == "_meta":
             continue
         entry = slim_course_for_ai(code, data)
-        entry["urgency_score"]     = priority_map.get(code, 0.0)
-        entry["requirement_block"] = block_map.get(code, "Breadth / Filler")
-        entry["is_filler"]         = code in filler_codes
+        entry["urgency_score"]      = priority_map.get(code, 0.0)
+        entry["requirement_block"]  = block_map.get(code, "Breadth / Filler")
+        entry["is_filler"]          = code in filler_codes
+        # advisory warnings now come directly from prereq_advisory field in slim_course_for_ai
         slim_catalog[code] = entry
 
-    # Strip section_families from filler courses to save tokens —
-    # Gemini doesn't need to reason about their times
+    # For filler courses, strip section_families (Gemini doesn't need timing detail
+    # for breadth courses — the scheduler handles section assignment)
     for code in filler_codes:
         if code in slim_catalog:
             slim_catalog[code].pop("section_families", None)
+            slim_catalog[code]["note"] = "Breadth/IB filler — sections assigned automatically"
 
     # Pass the urgency-ranked block list so Gemini knows the priority order
     # without needing to interpret course names or block names
@@ -550,25 +691,32 @@ def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
         for b in scored_blocks
     ]
 
+    completed = user_profile.get("completed_courses", [])
     prompt = {
         "task": "Select courses for this student following the urgency-ranked blocks.",
         "student": {
             "major":              user_profile.get("major"),
-            "completed_courses":  user_profile.get("completed_courses", []),
+            "completed_courses":  [normalize_code(c) for c in completed],
             "target_credits":     user_profile.get("target_credits_this_term"),
             "max_workload_per_class": user_profile.get("preferences", {}).get(
                 "max_workload_percent_per_class", 100),
         },
         "ranked_requirement_blocks": ranked_blocks_for_prompt,
         "candidate_courses":         slim_catalog,
+        "prereq_reminder": (
+            "Before selecting any course, verify its prereq_enforced field against "
+            "student.completed_courses. If the student does not satisfy the prereq, "
+            "do NOT include that course in selections."
+        ),
     }
 
     if conflicting_courses:
         prompt["conflicting_courses"] = conflicting_courses
         prompt["instruction"] = (
-            f"The courses {conflicting_courses} caused unresolvable time conflicts. "
-            "Avoid ALL of them. Substitute with alternatives from the same or "
-            "adjacent urgency-ranked blocks."
+            f"The following courses have NO valid sections that fit the student's "
+            f"time constraints (preference blocks, other courses): {conflicting_courses}. "
+            "Replace ONLY these courses with alternatives from the same or adjacent "
+            "urgency-ranked blocks. Keep all other previously-selected courses if possible."
         )
 
     response = client.models.generate_content(
@@ -600,7 +748,7 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
       or
         {"success": False, "conflicts": [course_codes...], "message": "..."}
     """
-    # Build list of (course_meta, families)
+    # Build list of courses with every possible LEC×linked combo pre-expanded
     courses_to_schedule = []
     for sel in selected_courses:
         code = sel["course_code"]
@@ -609,15 +757,26 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
         data     = raw_catalog[code]
         families = group_sections_by_family(data.get("availability", []))
         if not families:
-            print(f"   No open section families for {code} - skipping")
+            print(f"   No open section families for {code} — skipping")
             continue
+
+        # Expand each family into all LEC×linked combos
+        all_combos = []
+        for fam in families:
+            all_combos.extend(build_section_combos(fam))
+
+        if not all_combos:
+            print(f"   No valid section combos for {code} — skipping")
+            continue
+
+        print(f"   {code}: {len(families)} lecture(s), {len(all_combos)} total section combos")
         courses_to_schedule.append({
             "code":             code,
             "title":            sel.get("course_title", data.get("course_title", "")),
             "credits":          sel.get("credits", data.get("credits", 0)),
             "workload_percent": sel.get("workload_percent",
                                         data.get("metrics", {}).get("workload_percent", "N/A")),
-            "families":         families,
+            "combos":           all_combos,   # list of (lec_sec, [linked_secs])
         })
 
     # Start with preference blocks as pre-occupied time
@@ -638,25 +797,25 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
 
         course = courses_to_schedule[idx]
 
-        for family in course["families"]:
-            lec    = family["lecture"]
-            linked = family["linked"]
-
-            # Gather TimeBlocks for every section in this family
+        for (lec, linked_secs) in course["combos"]:
+            # Collect TimeBlocks for this specific LEC + linked combo
             new_blocks = []
-            for sec in [lec] + linked:
+            for sec in [lec] + linked_secs:
                 new_blocks.extend(section_to_timeblocks(sec, course["code"]))
 
-            # If no times could be parsed (TBA sections), only accept if it's
-            # the only family available
-            if not new_blocks and len(course["families"]) > 1:
-                continue
+            # Only skip TBA combos if other real-time options exist
+            has_times = any(new_blocks)
+            if not has_times:
+                total_combos = len(course["combos"])
+                if total_combos > 1:
+                    continue  # skip TBA; better options exist
+                # Only combo and it's TBA — accept it (online/async course)
 
             conflict = first_conflict(new_blocks)
             if conflict:
                 continue
 
-            # Commit this family
+            # Commit
             occupied.extend(new_blocks)
             chosen.append({
                 "course_code":      course["code"],
@@ -664,8 +823,8 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
                 "credits":          course["credits"],
                 "workload_percent": course["workload_percent"],
                 "lecture_section":  slim_section_for_ai(lec),
-                "linked_sections":  [slim_section_for_ai(s) for s in linked],
-                "_timeblocks":      new_blocks,  # internal; stripped from output
+                "linked_sections":  [slim_section_for_ai(s) for s in linked_secs],
+                "_timeblocks":      new_blocks,
             })
 
             if backtrack(idx + 1):
@@ -675,7 +834,7 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
             del occupied[-len(new_blocks):]
             chosen.pop()
 
-        return False  # No valid family for this course
+        return False  # No valid combo found for this course
 
     success = backtrack(0)
 
@@ -690,6 +849,14 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
         avg_workload = round(sum(workloads) / len(workloads), 1) if workloads else 0
 
         clean = [{k: v for k, v in c.items() if k != "_timeblocks"} for c in chosen]
+
+        # Bubble advisory warnings into the final schedule entries
+        for entry in clean:
+            code = entry.get("course_code", "")
+            adv  = raw_catalog.get(code, {}).get("advisory_warnings", [])
+            if adv:
+                entry["advisory_prereq_warnings"] = adv
+
         return {
             "success":          True,
             "schedule":         clean,
@@ -697,12 +864,33 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
             "average_workload": avg_workload,
         }
     else:
-        conflict_codes = [c["code"] for c in courses_to_schedule]
+        # Identify which course(s) actually got stuck by re-running with diagnostics.
+        # A course is "the problem" if it has zero combos that avoid ALL preference
+        # blocks alone (before even considering other courses).
+        pref_only = list(preference_blocks)
+        truly_stuck = []
+        for course in courses_to_schedule:
+            any_fits = False
+            for (lec, linked_secs) in course["combos"]:
+                blocks = []
+                for sec in [lec] + linked_secs:
+                    blocks.extend(section_to_timeblocks(sec, course["code"]))
+                if not any(any(b.conflicts_with(p) for p in pref_only) for b in blocks):
+                    any_fits = True
+                    break
+            if not any_fits:
+                truly_stuck.append(course["code"])
+
+        # If we can pinpoint stuck courses, report only those; else report all
+        reported = truly_stuck if truly_stuck else [c["code"] for c in courses_to_schedule]
         return {
-            "success":   False,
-            "conflicts": conflict_codes,
-            "message":   (
-                f"No conflict-free section assignment found for: {conflict_codes}"
+            "success":      False,
+            "conflicts":    reported,
+            "all_selected": [c["code"] for c in courses_to_schedule],
+            "message": (
+                f"Courses with no valid sections given time constraints: {reported}"
+                if truly_stuck else
+                f"No conflict-free combination found among: {reported}"
             ),
         }
 
@@ -769,6 +957,7 @@ def build_schedule_with_ai(user_profile: dict, rules_db: list, catalog_db: dict)
             print(f"\nValid schedule found on attempt {attempt}!")
             result["attempt"]  = attempt
             result["ai_notes"] = ai_result.get("notes", "")
+            # prereqs enforced by Gemini during selection — no separate blocked list
             result["active_preference_blocks"] = [
                 {
                     "label": b.label,
@@ -797,10 +986,10 @@ def build_schedule_with_ai(user_profile: dict, rules_db: list, catalog_db: dict)
 
 if __name__ == "__main__":
     rules   = load_json_db("master.json")
-    catalog = load_json_db("unified_catalog.json")
+    catalog = load_json_db("unified_catalog_test.json")
 
     test_user = {
-        "major": "Civil Engineering",
+        "major": "Computer Engineering",
         "completed_courses": [
             "MATH 115", "MATH 116", "ENGR 100", "ENGR 101",
             "CHEM 130", "CHEM 125", "CHEM 126",
@@ -809,7 +998,7 @@ if __name__ == "__main__":
         "preferences": {
             "max_workload_percent_per_class": 80,
             "avoid_mornings": True,   # blocks 12:00 AM - 10:00 AM, Mon-Fri
-            "free_fridays":   True,   # blocks all day Friday
+            "free_fridays":   False,   # blocks all day Friday
             # Optional custom blocks:
             # "custom_blocks": [
             #     {
