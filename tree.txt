@@ -1,22 +1,24 @@
 .
 ├── aggregate_jsons.py
-├── atlas_workload_scraper.js
+├── atlas1.csv
+├── atlas2.csv
+├── atlas3.csv
+├── atlas4.csv
+├── atlas_workload_api.js
 ├── build_catalog.py
 ├── bun.lock
 ├── checkPreReqs.py
 ├── components.json
+├── debug_page.py
 ├── Diagram.png
+├── fall_2026_catalog_batch1.json
+├── fall_2026_catalog_batch2.json
+├── fall_2026_catalog_batch3.json
+├── fall_2026_catalog_batch4.json
 ├── lastbuildtsthatworked.txt
 ├── lastworkingts.txt
 ├── master.json
 ├── mermaiddiagram.txt
-├── my_guides
-│   ├── archive
-│   │   ├── 2025-2026 Computer Engineering Program Guide.pdf
-│   │   ├── 2025-2026 Electrical Engineering Program Guide.pdf
-│   │   └── WIPD PERF 2024-2025.pdf
-│   ├── Civil-Engineering-Sample-Schedule_-Fall-2025-10.21.2025.pdf
-│   └── minor-2024-11-18.pdf
 ├── next.config.ts
 ├── next-env.d.ts
 ├── node_modules
@@ -1731,6 +1733,12 @@
 │   │       ├── LICENSE
 │   │       ├── package.json
 │   │       └── README.md
+│   ├── bail
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── balanced-match
 │   │   ├── dist
 │   │   │   ├── commonjs
@@ -4138,6 +4146,12 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── ccount
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── chalk
 │   │   ├── license
 │   │   ├── package.json
@@ -4155,6 +4169,30 @@
 │   │               ├── browser.js
 │   │               ├── index.d.ts
 │   │               └── index.js
+│   ├── character-entities
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── character-entities-html4
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── character-entities-legacy
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── character-reference-invalid
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── @chevrotain
 │   ├── chokidar
 │   │   ├── esm
@@ -4344,6 +4382,12 @@
 │   │   └── typings
 │   │       ├── esm.d.mts
 │   │       └── index.d.ts
+│   ├── comma-separated-tokens
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── confbox
 │   │   ├── dist
 │   │   │   ├── _chunks
@@ -4538,6 +4582,16 @@
 │   │       ├── common.js
 │   │       ├── index.js
 │   │       └── node.js
+│   ├── decode-named-character-reference
+│   │   ├── index.dom.d.ts
+│   │   ├── index.dom.d.ts.map
+│   │   ├── index.dom.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── dedent
 │   │   ├── dist
 │   │   │   ├── dedent.d.mts
@@ -4608,6 +4662,20 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── Readme.md
+│   ├── dequal
+│   │   ├── dist
+│   │   │   ├── index.js
+│   │   │   ├── index.min.js
+│   │   │   └── index.mjs
+│   │   ├── index.d.ts
+│   │   ├── license
+│   │   ├── lite
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── index.min.js
+│   │   │   └── index.mjs
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── destr
 │   │   ├── dist
 │   │   │   ├── index.cjs
@@ -4641,6 +4709,14 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── Readme.md
+│   ├── devlop
+│   │   ├── lib
+│   │   │   ├── default.js
+│   │   │   ├── development.d.ts
+│   │   │   └── development.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── diff
 │   │   ├── CONTRIBUTING.md
 │   │   ├── dist
@@ -8647,6 +8723,12 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── Readme.md
+│   ├── escape-string-regexp
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── es-define-property
 │   │   ├── CHANGELOG.md
 │   │   ├── index.d.ts
@@ -8705,6 +8787,15 @@
 │   │   ├── LICENSE.BSD
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── estree-util-is-identifier-name
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── etag
 │   │   ├── HISTORY.md
 │   │   ├── index.js
@@ -8942,6 +9033,13 @@
 │   │   ├── dist
 │   │   │   ├── index.d.mts
 │   │   │   └── index.mjs
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── extend
+│   │   ├── CHANGELOG.md
+│   │   ├── component.json
+│   │   ├── index.js
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
@@ -11317,6 +11415,27 @@
 │   │   │   │   └── get-own-property-symbols.js
 │   │   │   └── tests.js
 │   │   └── tsconfig.json
+│   ├── hast-util-to-jsx-runtime
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── types.d.ts
+│   │   │   └── types.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── hast-util-whitespace
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── headers-polyfill
 │   │   ├── lib
 │   │   │   ├── index.d.mts
@@ -12148,6 +12267,17 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── html-url-attributes
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── http-errors
 │   │   ├── HISTORY.md
 │   │   ├── index.js
@@ -12267,6 +12397,24 @@
 │   ├── inherits
 │   │   ├── inherits_browser.js
 │   │   ├── inherits.js
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   └── README.md
+│   ├── inline-style-parser
+│   │   ├── cjs
+│   │   │   ├── index.d.cts
+│   │   │   ├── index.js
+│   │   │   └── index.js.map
+│   │   ├── dist
+│   │   │   ├── inline-style-parser.js
+│   │   │   ├── inline-style-parser.js.map
+│   │   │   ├── inline-style-parser.min.js
+│   │   │   └── inline-style-parser.min.js.map
+│   │   ├── esm
+│   │   │   ├── index.d.mts
+│   │   │   ├── index.mjs
+│   │   │   └── index.mjs.map
+│   │   ├── index.d.ts
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
@@ -12477,11 +12625,29 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── is-alphabetical
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── is-alphanumerical
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── is-arrayish
 │   │   ├── index.js
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── is-decimal
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── is-docker
 │   │   ├── cli.js
 │   │   ├── index.d.ts
@@ -12514,6 +12680,12 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── is-hexadecimal
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── is-inside-container
 │   │   ├── cli.js
 │   │   ├── index.d.ts
@@ -14339,6 +14511,12 @@
 │   │   │       ├── license
 │   │   │       ├── package.json
 │   │   │       └── readme.md
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── longest-streak
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
 │   │   ├── package.json
 │   │   └── readme.md
 │   ├── lru-cache
@@ -18308,6 +18486,13 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── markdown-table
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── math-intrinsics
 │   │   ├── abs.d.ts
 │   │   ├── abs.js
@@ -18347,6 +18532,387 @@
 │   │   ├── test
 │   │   │   └── index.js
 │   │   └── tsconfig.json
+│   ├── mdast-util-find-and-replace
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-from-markdown
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── index.d.ts
+│   │   │       ├── index.d.ts.map
+│   │   │       ├── index.js
+│   │   │       ├── types.d.ts
+│   │   │       └── types.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── types.d.ts
+│   │   │   └── types.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm-autolink-literal
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm-footnote
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm-strikethrough
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm-table
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-gfm-task-list-item
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-mdx-expression
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-mdxjs-esm
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-mdx-jsx
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-phrasing
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-to-hast
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── footer.d.ts
+│   │   │   ├── footer.d.ts.map
+│   │   │   ├── footer.js
+│   │   │   ├── handlers
+│   │   │   │   ├── blockquote.d.ts
+│   │   │   │   ├── blockquote.d.ts.map
+│   │   │   │   ├── blockquote.js
+│   │   │   │   ├── break.d.ts
+│   │   │   │   ├── break.d.ts.map
+│   │   │   │   ├── break.js
+│   │   │   │   ├── code.d.ts
+│   │   │   │   ├── code.d.ts.map
+│   │   │   │   ├── code.js
+│   │   │   │   ├── delete.d.ts
+│   │   │   │   ├── delete.d.ts.map
+│   │   │   │   ├── delete.js
+│   │   │   │   ├── emphasis.d.ts
+│   │   │   │   ├── emphasis.d.ts.map
+│   │   │   │   ├── emphasis.js
+│   │   │   │   ├── footnote-reference.d.ts
+│   │   │   │   ├── footnote-reference.d.ts.map
+│   │   │   │   ├── footnote-reference.js
+│   │   │   │   ├── heading.d.ts
+│   │   │   │   ├── heading.d.ts.map
+│   │   │   │   ├── heading.js
+│   │   │   │   ├── html.d.ts
+│   │   │   │   ├── html.d.ts.map
+│   │   │   │   ├── html.js
+│   │   │   │   ├── image.d.ts
+│   │   │   │   ├── image.d.ts.map
+│   │   │   │   ├── image.js
+│   │   │   │   ├── image-reference.d.ts
+│   │   │   │   ├── image-reference.d.ts.map
+│   │   │   │   ├── image-reference.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── inline-code.d.ts
+│   │   │   │   ├── inline-code.d.ts.map
+│   │   │   │   ├── inline-code.js
+│   │   │   │   ├── link.d.ts
+│   │   │   │   ├── link.d.ts.map
+│   │   │   │   ├── link.js
+│   │   │   │   ├── link-reference.d.ts
+│   │   │   │   ├── link-reference.d.ts.map
+│   │   │   │   ├── link-reference.js
+│   │   │   │   ├── list.d.ts
+│   │   │   │   ├── list.d.ts.map
+│   │   │   │   ├── list-item.d.ts
+│   │   │   │   ├── list-item.d.ts.map
+│   │   │   │   ├── list-item.js
+│   │   │   │   ├── list.js
+│   │   │   │   ├── paragraph.d.ts
+│   │   │   │   ├── paragraph.d.ts.map
+│   │   │   │   ├── paragraph.js
+│   │   │   │   ├── root.d.ts
+│   │   │   │   ├── root.d.ts.map
+│   │   │   │   ├── root.js
+│   │   │   │   ├── strong.d.ts
+│   │   │   │   ├── strong.d.ts.map
+│   │   │   │   ├── strong.js
+│   │   │   │   ├── table-cell.d.ts
+│   │   │   │   ├── table-cell.d.ts.map
+│   │   │   │   ├── table-cell.js
+│   │   │   │   ├── table.d.ts
+│   │   │   │   ├── table.d.ts.map
+│   │   │   │   ├── table.js
+│   │   │   │   ├── table-row.d.ts
+│   │   │   │   ├── table-row.d.ts.map
+│   │   │   │   ├── table-row.js
+│   │   │   │   ├── text.d.ts
+│   │   │   │   ├── text.d.ts.map
+│   │   │   │   ├── text.js
+│   │   │   │   ├── thematic-break.d.ts
+│   │   │   │   ├── thematic-break.d.ts.map
+│   │   │   │   └── thematic-break.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── revert.d.ts
+│   │   │   ├── revert.d.ts.map
+│   │   │   ├── revert.js
+│   │   │   ├── state.d.ts
+│   │   │   ├── state.d.ts.map
+│   │   │   └── state.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-to-markdown
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── configure.d.ts
+│   │   │   ├── configure.d.ts.map
+│   │   │   ├── configure.js
+│   │   │   ├── handle
+│   │   │   │   ├── blockquote.d.ts
+│   │   │   │   ├── blockquote.d.ts.map
+│   │   │   │   ├── blockquote.js
+│   │   │   │   ├── break.d.ts
+│   │   │   │   ├── break.d.ts.map
+│   │   │   │   ├── break.js
+│   │   │   │   ├── code.d.ts
+│   │   │   │   ├── code.d.ts.map
+│   │   │   │   ├── code.js
+│   │   │   │   ├── definition.d.ts
+│   │   │   │   ├── definition.d.ts.map
+│   │   │   │   ├── definition.js
+│   │   │   │   ├── emphasis.d.ts
+│   │   │   │   ├── emphasis.d.ts.map
+│   │   │   │   ├── emphasis.js
+│   │   │   │   ├── heading.d.ts
+│   │   │   │   ├── heading.d.ts.map
+│   │   │   │   ├── heading.js
+│   │   │   │   ├── html.d.ts
+│   │   │   │   ├── html.d.ts.map
+│   │   │   │   ├── html.js
+│   │   │   │   ├── image.d.ts
+│   │   │   │   ├── image.d.ts.map
+│   │   │   │   ├── image.js
+│   │   │   │   ├── image-reference.d.ts
+│   │   │   │   ├── image-reference.d.ts.map
+│   │   │   │   ├── image-reference.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── inline-code.d.ts
+│   │   │   │   ├── inline-code.d.ts.map
+│   │   │   │   ├── inline-code.js
+│   │   │   │   ├── link.d.ts
+│   │   │   │   ├── link.d.ts.map
+│   │   │   │   ├── link.js
+│   │   │   │   ├── link-reference.d.ts
+│   │   │   │   ├── link-reference.d.ts.map
+│   │   │   │   ├── link-reference.js
+│   │   │   │   ├── list.d.ts
+│   │   │   │   ├── list.d.ts.map
+│   │   │   │   ├── list-item.d.ts
+│   │   │   │   ├── list-item.d.ts.map
+│   │   │   │   ├── list-item.js
+│   │   │   │   ├── list.js
+│   │   │   │   ├── paragraph.d.ts
+│   │   │   │   ├── paragraph.d.ts.map
+│   │   │   │   ├── paragraph.js
+│   │   │   │   ├── root.d.ts
+│   │   │   │   ├── root.d.ts.map
+│   │   │   │   ├── root.js
+│   │   │   │   ├── strong.d.ts
+│   │   │   │   ├── strong.d.ts.map
+│   │   │   │   ├── strong.js
+│   │   │   │   ├── text.d.ts
+│   │   │   │   ├── text.d.ts.map
+│   │   │   │   ├── text.js
+│   │   │   │   ├── thematic-break.d.ts
+│   │   │   │   ├── thematic-break.d.ts.map
+│   │   │   │   └── thematic-break.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── join.d.ts
+│   │   │   ├── join.d.ts.map
+│   │   │   ├── join.js
+│   │   │   ├── types.d.ts
+│   │   │   ├── types.js
+│   │   │   ├── unsafe.d.ts
+│   │   │   ├── unsafe.d.ts.map
+│   │   │   ├── unsafe.js
+│   │   │   └── util
+│   │   │       ├── association.d.ts
+│   │   │       ├── association.d.ts.map
+│   │   │       ├── association.js
+│   │   │       ├── check-bullet.d.ts
+│   │   │       ├── check-bullet.d.ts.map
+│   │   │       ├── check-bullet.js
+│   │   │       ├── check-bullet-ordered.d.ts
+│   │   │       ├── check-bullet-ordered.d.ts.map
+│   │   │       ├── check-bullet-ordered.js
+│   │   │       ├── check-bullet-other.d.ts
+│   │   │       ├── check-bullet-other.d.ts.map
+│   │   │       ├── check-bullet-other.js
+│   │   │       ├── check-emphasis.d.ts
+│   │   │       ├── check-emphasis.d.ts.map
+│   │   │       ├── check-emphasis.js
+│   │   │       ├── check-fence.d.ts
+│   │   │       ├── check-fence.d.ts.map
+│   │   │       ├── check-fence.js
+│   │   │       ├── check-list-item-indent.d.ts
+│   │   │       ├── check-list-item-indent.d.ts.map
+│   │   │       ├── check-list-item-indent.js
+│   │   │       ├── check-quote.d.ts
+│   │   │       ├── check-quote.d.ts.map
+│   │   │       ├── check-quote.js
+│   │   │       ├── check-rule.d.ts
+│   │   │       ├── check-rule.d.ts.map
+│   │   │       ├── check-rule.js
+│   │   │       ├── check-rule-repetition.d.ts
+│   │   │       ├── check-rule-repetition.d.ts.map
+│   │   │       ├── check-rule-repetition.js
+│   │   │       ├── check-strong.d.ts
+│   │   │       ├── check-strong.d.ts.map
+│   │   │       ├── check-strong.js
+│   │   │       ├── compile-pattern.d.ts
+│   │   │       ├── compile-pattern.d.ts.map
+│   │   │       ├── compile-pattern.js
+│   │   │       ├── container-flow.d.ts
+│   │   │       ├── container-flow.d.ts.map
+│   │   │       ├── container-flow.js
+│   │   │       ├── container-phrasing.d.ts
+│   │   │       ├── container-phrasing.d.ts.map
+│   │   │       ├── container-phrasing.js
+│   │   │       ├── emphasis-strong-marker.d.ts
+│   │   │       ├── emphasis-strong-marker.d.ts.map
+│   │   │       ├── encode-character-reference.d.ts
+│   │   │       ├── encode-character-reference.d.ts.map
+│   │   │       ├── encode-character-reference.js
+│   │   │       ├── encode-info.d.ts
+│   │   │       ├── encode-info.d.ts.map
+│   │   │       ├── encode-info.js
+│   │   │       ├── format-code-as-indented.d.ts
+│   │   │       ├── format-code-as-indented.d.ts.map
+│   │   │       ├── format-code-as-indented.js
+│   │   │       ├── format-heading-as-setext.d.ts
+│   │   │       ├── format-heading-as-setext.d.ts.map
+│   │   │       ├── format-heading-as-setext.js
+│   │   │       ├── format-link-as-autolink.d.ts
+│   │   │       ├── format-link-as-autolink.d.ts.map
+│   │   │       ├── format-link-as-autolink.js
+│   │   │       ├── indent-lines.d.ts
+│   │   │       ├── indent-lines.d.ts.map
+│   │   │       ├── indent-lines.js
+│   │   │       ├── pattern-in-scope.d.ts
+│   │   │       ├── pattern-in-scope.d.ts.map
+│   │   │       ├── pattern-in-scope.js
+│   │   │       ├── safe.d.ts
+│   │   │       ├── safe.d.ts.map
+│   │   │       ├── safe.js
+│   │   │       ├── track.d.ts
+│   │   │       ├── track.d.ts.map
+│   │   │       └── track.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── mdast-util-to-string
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── media-typer
 │   │   ├── HISTORY.md
 │   │   ├── index.js
@@ -18375,6 +18941,563 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── micromark
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── compile.d.ts
+│   │   │   │   ├── compile.d.ts.map
+│   │   │   │   ├── compile.js
+│   │   │   │   ├── constructs.d.ts
+│   │   │   │   ├── constructs.d.ts.map
+│   │   │   │   ├── constructs.js
+│   │   │   │   ├── create-tokenizer.d.ts
+│   │   │   │   ├── create-tokenizer.d.ts.map
+│   │   │   │   ├── create-tokenizer.js
+│   │   │   │   ├── initialize
+│   │   │   │   │   ├── content.d.ts
+│   │   │   │   │   ├── content.d.ts.map
+│   │   │   │   │   ├── content.js
+│   │   │   │   │   ├── document.d.ts
+│   │   │   │   │   ├── document.d.ts.map
+│   │   │   │   │   ├── document.js
+│   │   │   │   │   ├── flow.d.ts
+│   │   │   │   │   ├── flow.d.ts.map
+│   │   │   │   │   ├── flow.js
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   ├── text.d.ts.map
+│   │   │   │   │   └── text.js
+│   │   │   │   ├── parse.d.ts
+│   │   │   │   ├── parse.d.ts.map
+│   │   │   │   ├── parse.js
+│   │   │   │   ├── postprocess.d.ts
+│   │   │   │   ├── postprocess.d.ts.map
+│   │   │   │   ├── postprocess.js
+│   │   │   │   ├── preprocess.d.ts
+│   │   │   │   ├── preprocess.d.ts.map
+│   │   │   │   └── preprocess.js
+│   │   │   ├── stream.d.ts
+│   │   │   ├── stream.d.ts.map
+│   │   │   └── stream.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── compile.d.ts
+│   │   │   ├── compile.d.ts.map
+│   │   │   ├── compile.js
+│   │   │   ├── constructs.d.ts
+│   │   │   ├── constructs.d.ts.map
+│   │   │   ├── constructs.js
+│   │   │   ├── create-tokenizer.d.ts
+│   │   │   ├── create-tokenizer.d.ts.map
+│   │   │   ├── create-tokenizer.js
+│   │   │   ├── initialize
+│   │   │   │   ├── content.d.ts
+│   │   │   │   ├── content.d.ts.map
+│   │   │   │   ├── content.js
+│   │   │   │   ├── document.d.ts
+│   │   │   │   ├── document.d.ts.map
+│   │   │   │   ├── document.js
+│   │   │   │   ├── flow.d.ts
+│   │   │   │   ├── flow.d.ts.map
+│   │   │   │   ├── flow.js
+│   │   │   │   ├── text.d.ts
+│   │   │   │   ├── text.d.ts.map
+│   │   │   │   └── text.js
+│   │   │   ├── parse.d.ts
+│   │   │   ├── parse.d.ts.map
+│   │   │   ├── parse.js
+│   │   │   ├── postprocess.d.ts
+│   │   │   ├── postprocess.d.ts.map
+│   │   │   ├── postprocess.js
+│   │   │   ├── preprocess.d.ts
+│   │   │   ├── preprocess.d.ts.map
+│   │   │   └── preprocess.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   ├── readme.md
+│   │   ├── stream.d.ts
+│   │   ├── stream.d.ts.map
+│   │   └── stream.js
+│   ├── micromark-core-commonmark
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── attention.d.ts
+│   │   │       ├── attention.d.ts.map
+│   │   │       ├── attention.js
+│   │   │       ├── autolink.d.ts
+│   │   │       ├── autolink.d.ts.map
+│   │   │       ├── autolink.js
+│   │   │       ├── blank-line.d.ts
+│   │   │       ├── blank-line.d.ts.map
+│   │   │       ├── blank-line.js
+│   │   │       ├── block-quote.d.ts
+│   │   │       ├── block-quote.d.ts.map
+│   │   │       ├── block-quote.js
+│   │   │       ├── character-escape.d.ts
+│   │   │       ├── character-escape.d.ts.map
+│   │   │       ├── character-escape.js
+│   │   │       ├── character-reference.d.ts
+│   │   │       ├── character-reference.d.ts.map
+│   │   │       ├── character-reference.js
+│   │   │       ├── code-fenced.d.ts
+│   │   │       ├── code-fenced.d.ts.map
+│   │   │       ├── code-fenced.js
+│   │   │       ├── code-indented.d.ts
+│   │   │       ├── code-indented.d.ts.map
+│   │   │       ├── code-indented.js
+│   │   │       ├── code-text.d.ts
+│   │   │       ├── code-text.d.ts.map
+│   │   │       ├── code-text.js
+│   │   │       ├── content.d.ts
+│   │   │       ├── content.d.ts.map
+│   │   │       ├── content.js
+│   │   │       ├── definition.d.ts
+│   │   │       ├── definition.d.ts.map
+│   │   │       ├── definition.js
+│   │   │       ├── hard-break-escape.d.ts
+│   │   │       ├── hard-break-escape.d.ts.map
+│   │   │       ├── hard-break-escape.js
+│   │   │       ├── heading-atx.d.ts
+│   │   │       ├── heading-atx.d.ts.map
+│   │   │       ├── heading-atx.js
+│   │   │       ├── html-flow.d.ts
+│   │   │       ├── html-flow.d.ts.map
+│   │   │       ├── html-flow.js
+│   │   │       ├── html-text.d.ts
+│   │   │       ├── html-text.d.ts.map
+│   │   │       ├── html-text.js
+│   │   │       ├── label-end.d.ts
+│   │   │       ├── label-end.d.ts.map
+│   │   │       ├── label-end.js
+│   │   │       ├── label-start-image.d.ts
+│   │   │       ├── label-start-image.d.ts.map
+│   │   │       ├── label-start-image.js
+│   │   │       ├── label-start-link.d.ts
+│   │   │       ├── label-start-link.d.ts.map
+│   │   │       ├── label-start-link.js
+│   │   │       ├── line-ending.d.ts
+│   │   │       ├── line-ending.d.ts.map
+│   │   │       ├── line-ending.js
+│   │   │       ├── list.d.ts
+│   │   │       ├── list.d.ts.map
+│   │   │       ├── list.js
+│   │   │       ├── setext-underline.d.ts
+│   │   │       ├── setext-underline.d.ts.map
+│   │   │       ├── setext-underline.js
+│   │   │       ├── thematic-break.d.ts
+│   │   │       ├── thematic-break.d.ts.map
+│   │   │       └── thematic-break.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── attention.d.ts
+│   │   │   ├── attention.d.ts.map
+│   │   │   ├── attention.js
+│   │   │   ├── autolink.d.ts
+│   │   │   ├── autolink.d.ts.map
+│   │   │   ├── autolink.js
+│   │   │   ├── blank-line.d.ts
+│   │   │   ├── blank-line.d.ts.map
+│   │   │   ├── blank-line.js
+│   │   │   ├── block-quote.d.ts
+│   │   │   ├── block-quote.d.ts.map
+│   │   │   ├── block-quote.js
+│   │   │   ├── character-escape.d.ts
+│   │   │   ├── character-escape.d.ts.map
+│   │   │   ├── character-escape.js
+│   │   │   ├── character-reference.d.ts
+│   │   │   ├── character-reference.d.ts.map
+│   │   │   ├── character-reference.js
+│   │   │   ├── code-fenced.d.ts
+│   │   │   ├── code-fenced.d.ts.map
+│   │   │   ├── code-fenced.js
+│   │   │   ├── code-indented.d.ts
+│   │   │   ├── code-indented.d.ts.map
+│   │   │   ├── code-indented.js
+│   │   │   ├── code-text.d.ts
+│   │   │   ├── code-text.d.ts.map
+│   │   │   ├── code-text.js
+│   │   │   ├── content.d.ts
+│   │   │   ├── content.d.ts.map
+│   │   │   ├── content.js
+│   │   │   ├── definition.d.ts
+│   │   │   ├── definition.d.ts.map
+│   │   │   ├── definition.js
+│   │   │   ├── hard-break-escape.d.ts
+│   │   │   ├── hard-break-escape.d.ts.map
+│   │   │   ├── hard-break-escape.js
+│   │   │   ├── heading-atx.d.ts
+│   │   │   ├── heading-atx.d.ts.map
+│   │   │   ├── heading-atx.js
+│   │   │   ├── html-flow.d.ts
+│   │   │   ├── html-flow.d.ts.map
+│   │   │   ├── html-flow.js
+│   │   │   ├── html-text.d.ts
+│   │   │   ├── html-text.d.ts.map
+│   │   │   ├── html-text.js
+│   │   │   ├── label-end.d.ts
+│   │   │   ├── label-end.d.ts.map
+│   │   │   ├── label-end.js
+│   │   │   ├── label-start-image.d.ts
+│   │   │   ├── label-start-image.d.ts.map
+│   │   │   ├── label-start-image.js
+│   │   │   ├── label-start-link.d.ts
+│   │   │   ├── label-start-link.d.ts.map
+│   │   │   ├── label-start-link.js
+│   │   │   ├── line-ending.d.ts
+│   │   │   ├── line-ending.d.ts.map
+│   │   │   ├── line-ending.js
+│   │   │   ├── list.d.ts
+│   │   │   ├── list.d.ts.map
+│   │   │   ├── list.js
+│   │   │   ├── setext-underline.d.ts
+│   │   │   ├── setext-underline.d.ts.map
+│   │   │   ├── setext-underline.js
+│   │   │   ├── thematic-break.d.ts
+│   │   │   ├── thematic-break.d.ts.map
+│   │   │   └── thematic-break.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-autolink-literal
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── html.d.ts
+│   │   │       ├── html.js
+│   │   │       ├── syntax.d.ts
+│   │   │       └── syntax.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.js
+│   │   │   ├── syntax.d.ts
+│   │   │   └── syntax.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-footnote
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── html.d.ts
+│   │   │       ├── html.js
+│   │   │       ├── syntax.d.ts
+│   │   │       └── syntax.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.js
+│   │   │   ├── syntax.d.ts
+│   │   │   └── syntax.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-strikethrough
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── html.d.ts
+│   │   │       ├── html.js
+│   │   │       ├── syntax.d.ts
+│   │   │       └── syntax.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.js
+│   │   │   ├── syntax.d.ts
+│   │   │   └── syntax.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-table
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── edit-map.d.ts
+│   │   │       ├── edit-map.d.ts.map
+│   │   │       ├── edit-map.js
+│   │   │       ├── html.d.ts
+│   │   │       ├── html.d.ts.map
+│   │   │       ├── html.js
+│   │   │       ├── infer.d.ts
+│   │   │       ├── infer.d.ts.map
+│   │   │       ├── infer.js
+│   │   │       ├── syntax.d.ts
+│   │   │       ├── syntax.d.ts.map
+│   │   │       └── syntax.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── edit-map.d.ts
+│   │   │   ├── edit-map.d.ts.map
+│   │   │   ├── edit-map.js
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.d.ts.map
+│   │   │   ├── html.js
+│   │   │   ├── infer.d.ts
+│   │   │   ├── infer.d.ts.map
+│   │   │   ├── infer.js
+│   │   │   ├── syntax.d.ts
+│   │   │   ├── syntax.d.ts.map
+│   │   │   └── syntax.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-tagfilter
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-extension-gfm-task-list-item
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── html.d.ts
+│   │   │       ├── html.js
+│   │   │       ├── syntax.d.ts
+│   │   │       └── syntax.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.js
+│   │   │   ├── syntax.d.ts
+│   │   │   └── syntax.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-factory-destination
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-factory-label
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-factory-space
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-factory-title
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-factory-whitespace
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-character
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-chunked
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-classify-character
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-combine-extensions
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-decode-numeric-character-reference
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-decode-string
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-encode
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-html-tag-name
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-normalize-identifier
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-resolve-all
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-sanitize-uri
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-subtokenize
+│   │   ├── dev
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   └── lib
+│   │   │       ├── splice-buffer.d.ts
+│   │   │       ├── splice-buffer.d.ts.map
+│   │   │       └── splice-buffer.js
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── splice-buffer.d.ts
+│   │   │   ├── splice-buffer.d.ts.map
+│   │   │   └── splice-buffer.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-symbol
+│   │   ├── lib
+│   │   │   ├── codes.d.ts
+│   │   │   ├── codes.d.ts.map
+│   │   │   ├── codes.js
+│   │   │   ├── constants.d.ts
+│   │   │   ├── constants.d.ts.map
+│   │   │   ├── constants.js
+│   │   │   ├── default.d.ts
+│   │   │   ├── default.d.ts.map
+│   │   │   ├── default.js
+│   │   │   ├── types.d.ts
+│   │   │   ├── types.d.ts.map
+│   │   │   ├── types.js
+│   │   │   ├── values.d.ts
+│   │   │   ├── values.d.ts.map
+│   │   │   └── values.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── micromark-util-types
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── micromatch
 │   │   ├── index.js
 │   │   ├── LICENSE
@@ -30474,6 +31597,23 @@
 │   │   ├── license
 │   │   ├── package.json
 │   │   └── readme.md
+│   ├── parse-entities
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── node_modules
+│   │   │   └── @types
+│   │   │       └── unist
+│   │   │           ├── index.d.ts
+│   │   │           ├── LICENSE
+│   │   │           ├── package.json
+│   │   │           └── README.md
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── parse-json
 │   │   ├── index.js
 │   │   ├── license
@@ -31208,6 +32348,65 @@
 │   │   │       ├── license
 │   │   │       ├── package.json
 │   │   │       └── readme.md
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── property-information
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── aria.d.ts
+│   │   │   ├── aria.d.ts.map
+│   │   │   ├── aria.js
+│   │   │   ├── find.d.ts
+│   │   │   ├── find.d.ts.map
+│   │   │   ├── find.js
+│   │   │   ├── hast-to-react.d.ts
+│   │   │   ├── hast-to-react.d.ts.map
+│   │   │   ├── hast-to-react.js
+│   │   │   ├── html.d.ts
+│   │   │   ├── html.d.ts.map
+│   │   │   ├── html.js
+│   │   │   ├── normalize.d.ts
+│   │   │   ├── normalize.d.ts.map
+│   │   │   ├── normalize.js
+│   │   │   ├── svg.d.ts
+│   │   │   ├── svg.d.ts.map
+│   │   │   ├── svg.js
+│   │   │   ├── util
+│   │   │   │   ├── case-insensitive-transform.d.ts
+│   │   │   │   ├── case-insensitive-transform.d.ts.map
+│   │   │   │   ├── case-insensitive-transform.js
+│   │   │   │   ├── case-sensitive-transform.d.ts
+│   │   │   │   ├── case-sensitive-transform.d.ts.map
+│   │   │   │   ├── case-sensitive-transform.js
+│   │   │   │   ├── create.d.ts
+│   │   │   │   ├── create.d.ts.map
+│   │   │   │   ├── create.js
+│   │   │   │   ├── defined-info.d.ts
+│   │   │   │   ├── defined-info.d.ts.map
+│   │   │   │   ├── defined-info.js
+│   │   │   │   ├── info.d.ts
+│   │   │   │   ├── info.d.ts.map
+│   │   │   │   ├── info.js
+│   │   │   │   ├── merge.d.ts
+│   │   │   │   ├── merge.d.ts.map
+│   │   │   │   ├── merge.js
+│   │   │   │   ├── schema.d.ts
+│   │   │   │   ├── schema.d.ts.map
+│   │   │   │   ├── schema.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── types.d.ts.map
+│   │   │   │   └── types.js
+│   │   │   ├── xlink.d.ts
+│   │   │   ├── xlink.d.ts.map
+│   │   │   ├── xlink.js
+│   │   │   ├── xml.d.ts
+│   │   │   ├── xml.d.ts.map
+│   │   │   ├── xml.js
+│   │   │   ├── xmlns.d.ts
+│   │   │   ├── xmlns.d.ts.map
+│   │   │   └── xmlns.js
+│   │   ├── license
 │   │   ├── package.json
 │   │   └── readme.md
 │   ├── proxy-addr
@@ -32120,6 +33319,17 @@
 │   │   ├── static.node.js
 │   │   ├── static.react-server.js
 │   │   └── test-utils.js
+│   ├── react-markdown
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── react-remove-scroll
 │   │   ├── dist
 │   │   │   ├── es2015
@@ -32318,6 +33528,45 @@
 │   │   │   └── typescript.js
 │   │   ├── README.md
 │   │   └── tsconfig.json
+│   ├── remark-gfm
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── remark-parse
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── remark-rehype
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── remark-stringify
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── require-directory
 │   │   ├── index.js
 │   │   ├── LICENSE
@@ -33400,6 +34649,12 @@
 │   │   ├── README.md
 │   │   ├── source-map.d.ts
 │   │   └── source-map.js
+│   ├── space-separated-tokens
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── sparse-bitfield
 │   │   ├── index.js
 │   │   ├── LICENSE
@@ -33438,6 +34693,31 @@
 │   │   │   └── index.mjs.map
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── stringify-entities
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── constant
+│   │   │   │   ├── dangerous.d.ts
+│   │   │   │   └── dangerous.js
+│   │   │   ├── core.d.ts
+│   │   │   ├── core.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── util
+│   │   │       ├── format-basic.d.ts
+│   │   │       ├── format-basic.js
+│   │   │       ├── format-smart.d.ts
+│   │   │       ├── format-smart.js
+│   │   │       ├── to-decimal.d.ts
+│   │   │       ├── to-decimal.js
+│   │   │       ├── to-hexadecimal.d.ts
+│   │   │       ├── to-hexadecimal.js
+│   │   │       ├── to-named.d.ts
+│   │   │       └── to-named.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── stringify-object
 │   │   ├── index.js
 │   │   ├── LICENSE
@@ -33492,6 +34772,52 @@
 │   │   ├── style.d.ts
 │   │   ├── style.js
 │   │   └── webpack.js
+│   ├── style-to-js
+│   │   ├── cjs
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── index.js.map
+│   │   │   ├── utilities.d.ts
+│   │   │   ├── utilities.d.ts.map
+│   │   │   ├── utilities.js
+│   │   │   └── utilities.js.map
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── index.test.ts
+│   │   │   ├── index.ts
+│   │   │   ├── utilities.test.ts
+│   │   │   └── utilities.ts
+│   │   └── umd
+│   │       ├── style-to-js.js
+│   │       ├── style-to-js.js.map
+│   │       ├── style-to-js.min.js
+│   │       └── style-to-js.min.js.map
+│   ├── style-to-object
+│   │   ├── cjs
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   └── index.js.map
+│   │   ├── dist
+│   │   │   ├── style-to-object.js
+│   │   │   ├── style-to-object.js.map
+│   │   │   ├── style-to-object.min.js
+│   │   │   └── style-to-object.min.js.map
+│   │   ├── esm
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── index.js.map
+│   │   │   ├── index.mjs
+│   │   │   └── index.mjs.map
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   └── src
+│   │       └── index.ts
 │   ├── superjson
 │   │   ├── dist
 │   │   │   ├── accessDeep.d.ts
@@ -34385,6 +35711,23 @@
 │   │   ├── LICENSE.md
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── trim-lines
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── trough
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── @trpc
 │   │   ├── client
 │   │   │   ├── dist
@@ -35356,6 +36699,37 @@
 │   │   ├── package.json
 │   │   └── README.md
 │   ├── @types
+│   │   ├── debug
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── estree
+│   │   │   ├── flow.d.ts
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── estree-jsx
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── hast
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── mdast
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── ms
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
 │   │   ├── node
 │   │   │   ├── assert
 │   │   │   │   └── strict.d.ts
@@ -35473,6 +36847,11 @@
 │   │   │   └── test-utils
 │   │   │       └── index.d.ts
 │   │   ├── statuses
+│   │   │   ├── index.d.ts
+│   │   │   ├── LICENSE
+│   │   │   ├── package.json
+│   │   │   └── README.md
+│   │   ├── unist
 │   │   │   ├── index.d.ts
 │   │   │   ├── LICENSE
 │   │   │   ├── package.json
@@ -35688,12 +37067,99 @@
 │   │   ├── util.d.ts
 │   │   ├── webidl.d.ts
 │   │   └── websocket.d.ts
+│   ├── @ungap
+│   │   └── structured-clone
+│   │       ├── cjs
+│   │       │   ├── deserialize.js
+│   │       │   ├── index.js
+│   │       │   ├── json.js
+│   │       │   ├── package.json
+│   │       │   ├── serialize.js
+│   │       │   └── types.js
+│   │       ├── esm
+│   │       │   ├── deserialize.js
+│   │       │   ├── index.js
+│   │       │   ├── json.js
+│   │       │   ├── serialize.js
+│   │       │   └── types.js
+│   │       ├── LICENSE
+│   │       ├── package.json
+│   │       ├── README.md
+│   │       └── structured-json.js
 │   ├── unicorn-magic
 │   │   ├── default.d.ts
 │   │   ├── default.js
 │   │   ├── license
 │   │   ├── node.d.ts
 │   │   ├── node.js
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unified
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── callable-instance.d.ts
+│   │   │   ├── callable-instance.d.ts.map
+│   │   │   ├── callable-instance.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unist-util-is
+│   │   ├── index.d.ts
+│   │   ├── index.d.ts.map
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unist-util-position
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unist-util-stringify-position
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unist-util-visit
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── unist-util-visit-parents
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── color.d.ts
+│   │   │   ├── color.d.ts.map
+│   │   │   ├── color.js
+│   │   │   ├── color.node.d.ts
+│   │   │   ├── color.node.d.ts.map
+│   │   │   ├── color.node.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   └── index.js
+│   │   ├── license
 │   │   ├── package.json
 │   │   └── readme.md
 │   ├── universalify
@@ -35900,6 +37366,46 @@
 │   │   ├── LICENSE
 │   │   ├── package.json
 │   │   └── README.md
+│   ├── vfile
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── minpath.browser.d.ts
+│   │   │   ├── minpath.browser.d.ts.map
+│   │   │   ├── minpath.browser.js
+│   │   │   ├── minpath.d.ts
+│   │   │   ├── minpath.d.ts.map
+│   │   │   ├── minpath.js
+│   │   │   ├── minproc.browser.d.ts
+│   │   │   ├── minproc.browser.d.ts.map
+│   │   │   ├── minproc.browser.js
+│   │   │   ├── minproc.d.ts
+│   │   │   ├── minproc.d.ts.map
+│   │   │   ├── minproc.js
+│   │   │   ├── minurl.browser.d.ts
+│   │   │   ├── minurl.browser.d.ts.map
+│   │   │   ├── minurl.browser.js
+│   │   │   ├── minurl.d.ts
+│   │   │   ├── minurl.d.ts.map
+│   │   │   ├── minurl.js
+│   │   │   ├── minurl.shared.d.ts
+│   │   │   ├── minurl.shared.d.ts.map
+│   │   │   └── minurl.shared.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
+│   ├── vfile-message
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   ├── lib
+│   │   │   ├── index.d.ts
+│   │   │   └── index.js
+│   │   ├── license
+│   │   ├── package.json
+│   │   └── readme.md
 │   ├── webidl-conversions
 │   │   ├── lib
 │   │   │   └── index.js
@@ -36902,141 +38408,147 @@
 │   │       ├── index.d.ts
 │   │       ├── index.js
 │   │       └── package.json
-│   └── zod-to-json-schema
-│       ├── changelog.md
-│       ├── contributing.md
-│       ├── createIndex.ts
-│       ├── dist
-│       │   ├── cjs
-│       │   │   ├── errorMessages.js
-│       │   │   ├── getRelativePath.js
-│       │   │   ├── index.js
-│       │   │   ├── Options.js
-│       │   │   ├── package.json
-│       │   │   ├── parseDef.js
-│       │   │   ├── parsers
-│       │   │   │   ├── any.js
-│       │   │   │   ├── array.js
-│       │   │   │   ├── bigint.js
-│       │   │   │   ├── boolean.js
-│       │   │   │   ├── branded.js
-│       │   │   │   ├── catch.js
-│       │   │   │   ├── date.js
-│       │   │   │   ├── default.js
-│       │   │   │   ├── effects.js
-│       │   │   │   ├── enum.js
-│       │   │   │   ├── intersection.js
-│       │   │   │   ├── literal.js
-│       │   │   │   ├── map.js
-│       │   │   │   ├── nativeEnum.js
-│       │   │   │   ├── never.js
-│       │   │   │   ├── nullable.js
-│       │   │   │   ├── null.js
-│       │   │   │   ├── number.js
-│       │   │   │   ├── object.js
-│       │   │   │   ├── optional.js
-│       │   │   │   ├── pipeline.js
-│       │   │   │   ├── promise.js
-│       │   │   │   ├── readonly.js
-│       │   │   │   ├── record.js
-│       │   │   │   ├── set.js
-│       │   │   │   ├── string.js
-│       │   │   │   ├── tuple.js
-│       │   │   │   ├── undefined.js
-│       │   │   │   ├── union.js
-│       │   │   │   └── unknown.js
-│       │   │   ├── parseTypes.js
-│       │   │   ├── Refs.js
-│       │   │   ├── selectParser.js
-│       │   │   └── zodToJsonSchema.js
-│       │   ├── esm
-│       │   │   ├── errorMessages.js
-│       │   │   ├── getRelativePath.js
-│       │   │   ├── index.js
-│       │   │   ├── Options.js
-│       │   │   ├── package.json
-│       │   │   ├── parseDef.js
-│       │   │   ├── parsers
-│       │   │   │   ├── any.js
-│       │   │   │   ├── array.js
-│       │   │   │   ├── bigint.js
-│       │   │   │   ├── boolean.js
-│       │   │   │   ├── branded.js
-│       │   │   │   ├── catch.js
-│       │   │   │   ├── date.js
-│       │   │   │   ├── default.js
-│       │   │   │   ├── effects.js
-│       │   │   │   ├── enum.js
-│       │   │   │   ├── intersection.js
-│       │   │   │   ├── literal.js
-│       │   │   │   ├── map.js
-│       │   │   │   ├── nativeEnum.js
-│       │   │   │   ├── never.js
-│       │   │   │   ├── nullable.js
-│       │   │   │   ├── null.js
-│       │   │   │   ├── number.js
-│       │   │   │   ├── object.js
-│       │   │   │   ├── optional.js
-│       │   │   │   ├── pipeline.js
-│       │   │   │   ├── promise.js
-│       │   │   │   ├── readonly.js
-│       │   │   │   ├── record.js
-│       │   │   │   ├── set.js
-│       │   │   │   ├── string.js
-│       │   │   │   ├── tuple.js
-│       │   │   │   ├── undefined.js
-│       │   │   │   ├── union.js
-│       │   │   │   └── unknown.js
-│       │   │   ├── parseTypes.js
-│       │   │   ├── Refs.js
-│       │   │   ├── selectParser.js
-│       │   │   └── zodToJsonSchema.js
-│       │   └── types
-│       │       ├── errorMessages.d.ts
-│       │       ├── getRelativePath.d.ts
-│       │       ├── index.d.ts
-│       │       ├── Options.d.ts
-│       │       ├── parseDef.d.ts
-│       │       ├── parsers
-│       │       │   ├── any.d.ts
-│       │       │   ├── array.d.ts
-│       │       │   ├── bigint.d.ts
-│       │       │   ├── boolean.d.ts
-│       │       │   ├── branded.d.ts
-│       │       │   ├── catch.d.ts
-│       │       │   ├── date.d.ts
-│       │       │   ├── default.d.ts
-│       │       │   ├── effects.d.ts
-│       │       │   ├── enum.d.ts
-│       │       │   ├── intersection.d.ts
-│       │       │   ├── literal.d.ts
-│       │       │   ├── map.d.ts
-│       │       │   ├── nativeEnum.d.ts
-│       │       │   ├── never.d.ts
-│       │       │   ├── nullable.d.ts
-│       │       │   ├── null.d.ts
-│       │       │   ├── number.d.ts
-│       │       │   ├── object.d.ts
-│       │       │   ├── optional.d.ts
-│       │       │   ├── pipeline.d.ts
-│       │       │   ├── promise.d.ts
-│       │       │   ├── readonly.d.ts
-│       │       │   ├── record.d.ts
-│       │       │   ├── set.d.ts
-│       │       │   ├── string.d.ts
-│       │       │   ├── tuple.d.ts
-│       │       │   ├── undefined.d.ts
-│       │       │   ├── union.d.ts
-│       │       │   └── unknown.d.ts
-│       │       ├── parseTypes.d.ts
-│       │       ├── Refs.d.ts
-│       │       ├── selectParser.d.ts
-│       │       └── zodToJsonSchema.d.ts
-│       ├── LICENSE
+│   ├── zod-to-json-schema
+│   │   ├── changelog.md
+│   │   ├── contributing.md
+│   │   ├── createIndex.ts
+│   │   ├── dist
+│   │   │   ├── cjs
+│   │   │   │   ├── errorMessages.js
+│   │   │   │   ├── getRelativePath.js
+│   │   │   │   ├── index.js
+│   │   │   │   ├── Options.js
+│   │   │   │   ├── package.json
+│   │   │   │   ├── parseDef.js
+│   │   │   │   ├── parsers
+│   │   │   │   │   ├── any.js
+│   │   │   │   │   ├── array.js
+│   │   │   │   │   ├── bigint.js
+│   │   │   │   │   ├── boolean.js
+│   │   │   │   │   ├── branded.js
+│   │   │   │   │   ├── catch.js
+│   │   │   │   │   ├── date.js
+│   │   │   │   │   ├── default.js
+│   │   │   │   │   ├── effects.js
+│   │   │   │   │   ├── enum.js
+│   │   │   │   │   ├── intersection.js
+│   │   │   │   │   ├── literal.js
+│   │   │   │   │   ├── map.js
+│   │   │   │   │   ├── nativeEnum.js
+│   │   │   │   │   ├── never.js
+│   │   │   │   │   ├── nullable.js
+│   │   │   │   │   ├── null.js
+│   │   │   │   │   ├── number.js
+│   │   │   │   │   ├── object.js
+│   │   │   │   │   ├── optional.js
+│   │   │   │   │   ├── pipeline.js
+│   │   │   │   │   ├── promise.js
+│   │   │   │   │   ├── readonly.js
+│   │   │   │   │   ├── record.js
+│   │   │   │   │   ├── set.js
+│   │   │   │   │   ├── string.js
+│   │   │   │   │   ├── tuple.js
+│   │   │   │   │   ├── undefined.js
+│   │   │   │   │   ├── union.js
+│   │   │   │   │   └── unknown.js
+│   │   │   │   ├── parseTypes.js
+│   │   │   │   ├── Refs.js
+│   │   │   │   ├── selectParser.js
+│   │   │   │   └── zodToJsonSchema.js
+│   │   │   ├── esm
+│   │   │   │   ├── errorMessages.js
+│   │   │   │   ├── getRelativePath.js
+│   │   │   │   ├── index.js
+│   │   │   │   ├── Options.js
+│   │   │   │   ├── package.json
+│   │   │   │   ├── parseDef.js
+│   │   │   │   ├── parsers
+│   │   │   │   │   ├── any.js
+│   │   │   │   │   ├── array.js
+│   │   │   │   │   ├── bigint.js
+│   │   │   │   │   ├── boolean.js
+│   │   │   │   │   ├── branded.js
+│   │   │   │   │   ├── catch.js
+│   │   │   │   │   ├── date.js
+│   │   │   │   │   ├── default.js
+│   │   │   │   │   ├── effects.js
+│   │   │   │   │   ├── enum.js
+│   │   │   │   │   ├── intersection.js
+│   │   │   │   │   ├── literal.js
+│   │   │   │   │   ├── map.js
+│   │   │   │   │   ├── nativeEnum.js
+│   │   │   │   │   ├── never.js
+│   │   │   │   │   ├── nullable.js
+│   │   │   │   │   ├── null.js
+│   │   │   │   │   ├── number.js
+│   │   │   │   │   ├── object.js
+│   │   │   │   │   ├── optional.js
+│   │   │   │   │   ├── pipeline.js
+│   │   │   │   │   ├── promise.js
+│   │   │   │   │   ├── readonly.js
+│   │   │   │   │   ├── record.js
+│   │   │   │   │   ├── set.js
+│   │   │   │   │   ├── string.js
+│   │   │   │   │   ├── tuple.js
+│   │   │   │   │   ├── undefined.js
+│   │   │   │   │   ├── union.js
+│   │   │   │   │   └── unknown.js
+│   │   │   │   ├── parseTypes.js
+│   │   │   │   ├── Refs.js
+│   │   │   │   ├── selectParser.js
+│   │   │   │   └── zodToJsonSchema.js
+│   │   │   └── types
+│   │   │       ├── errorMessages.d.ts
+│   │   │       ├── getRelativePath.d.ts
+│   │   │       ├── index.d.ts
+│   │   │       ├── Options.d.ts
+│   │   │       ├── parseDef.d.ts
+│   │   │       ├── parsers
+│   │   │       │   ├── any.d.ts
+│   │   │       │   ├── array.d.ts
+│   │   │       │   ├── bigint.d.ts
+│   │   │       │   ├── boolean.d.ts
+│   │   │       │   ├── branded.d.ts
+│   │   │       │   ├── catch.d.ts
+│   │   │       │   ├── date.d.ts
+│   │   │       │   ├── default.d.ts
+│   │   │       │   ├── effects.d.ts
+│   │   │       │   ├── enum.d.ts
+│   │   │       │   ├── intersection.d.ts
+│   │   │       │   ├── literal.d.ts
+│   │   │       │   ├── map.d.ts
+│   │   │       │   ├── nativeEnum.d.ts
+│   │   │       │   ├── never.d.ts
+│   │   │       │   ├── nullable.d.ts
+│   │   │       │   ├── null.d.ts
+│   │   │       │   ├── number.d.ts
+│   │   │       │   ├── object.d.ts
+│   │   │       │   ├── optional.d.ts
+│   │   │       │   ├── pipeline.d.ts
+│   │   │       │   ├── promise.d.ts
+│   │   │       │   ├── readonly.d.ts
+│   │   │       │   ├── record.d.ts
+│   │   │       │   ├── set.d.ts
+│   │   │       │   ├── string.d.ts
+│   │   │       │   ├── tuple.d.ts
+│   │   │       │   ├── undefined.d.ts
+│   │   │       │   ├── union.d.ts
+│   │   │       │   └── unknown.d.ts
+│   │   │       ├── parseTypes.d.ts
+│   │   │       ├── Refs.d.ts
+│   │   │       ├── selectParser.d.ts
+│   │   │       └── zodToJsonSchema.d.ts
+│   │   ├── LICENSE
+│   │   ├── package.json
+│   │   ├── postcjs.ts
+│   │   ├── postesm.ts
+│   │   └── README.md
+│   └── zwitch
+│       ├── index.d.ts
+│       ├── index.js
+│       ├── license
 │       ├── package.json
-│       ├── postcjs.ts
-│       ├── postesm.ts
-│       └── README.md
+│       └── readme.md
 ├── package.json
 ├── package-lock.json
 ├── postcss.config.mjs
@@ -37049,9 +38561,18 @@
 │   └── archive
 │       ├── 2025-2026 Computer Engineering Program Guide.json
 │       ├── 2025-2026 Electrical Engineering Program Guide.json
+│       ├── BuisAdmin.json
 │       ├── Civil-Engineering-Sample-Schedule_-Fall-2025-10.21.2025.json
+│       ├── CSE.json
+│       ├── CSLSA.json
+│       ├── Info.json
+│       ├── minor-2024-11-18.json
+│       ├── Psychology.json
 │       └── WIPD PERF 2024-2025.json
+├── save_lsa_programs.py
 ├── schedule_optimizer.py
+├── seed-courses.ts
+├── seed-programs.ts
 ├── seed.ts
 ├── src
 │   ├── app
@@ -37061,6 +38582,22 @@
 │   │   │   ├── auth
 │   │   │   │   └── [...all]
 │   │   │   │       └── route.ts
+│   │   │   ├── chats
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── parse-transcript
+│   │   │   │   └── route.ts
+│   │   │   ├── plan
+│   │   │   │   └── route.ts
+│   │   │   ├── schedule
+│   │   │   │   └── route.ts
+│   │   │   ├── schedules
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── student
+│   │   │   │   └── route.ts
 │   │   │   └── trpc
 │   │   │       └── [trpc]
 │   │   │           └── route.ts
@@ -37079,9 +38616,14 @@
 │   │           │   ├── marquee.tsx
 │   │           │   └── navbar.tsx
 │   │           ├── dashboard
+│   │           │   ├── ChatPlanner.tsx
+│   │           │   ├── DashboardClient.tsx
 │   │           │   ├── page.tsx
 │   │           │   ├── profile-badge.tsx
-│   │           │   └── TranscriptUpload.tsx
+│   │           │   ├── SchedulePanel.tsx
+│   │           │   ├── TranscriptUpload.tsx
+│   │           │   ├── types.ts
+│   │           │   └── WeeklyCalendar.tsx
 │   │           └── page.tsx
 │   ├── components
 │   │   └── ui
@@ -37117,6 +38659,7 @@
 │   ├── hooks
 │   │   └── use-auth-state.ts
 │   ├── lib
+│   │   ├── ai-tools.ts
 │   │   ├── auth
 │   │   │   ├── auth-client.ts
 │   │   │   ├── client.ts
@@ -37132,11 +38675,17 @@
 │       └── trpc.ts
 ├── test_auth.py
 ├── test.csv
+├── test.py
 ├── tree.txt
 ├── tsconfig.json
+├── tsconfig.tsbuildinfo
 ├── umich_atlas_FINAL.csv
 ├── umich_atlas_workload_FINAL.csv
 ├── unified_catalog.json
-└── unified_catalog_test.json
+├── unified_catalog_test.json
+├── winter_2026_catalog_batch1.json
+├── winter_2026_catalog_batch2.json
+├── winter_2026_catalog_batch3.json
+└── winter_2026_catalog_batch4.json
 
-3455 directories, 33685 files
+3660 directories, 35029 files
