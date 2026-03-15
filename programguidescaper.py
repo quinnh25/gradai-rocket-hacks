@@ -1,6 +1,5 @@
 import os
 import json
-import docx
 import PyPDF2
 from jsonschema import validate, ValidationError
 from dotenv import load_dotenv
