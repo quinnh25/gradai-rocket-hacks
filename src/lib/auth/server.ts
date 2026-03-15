@@ -14,8 +14,7 @@ export const auth = betterAuth({
     },
   },
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-  // ⚠️ CRITICAL HACKATHON FIX: 
-  // Prevents a known bug where Prisma + MongoDB crash over "ObjectIDs"
+  trustedOrigins: ["https://gradai-rocket-hacks.vercel.app"], // ← ADD THIS LINE
   advanced: {
     database: {
       generateId: false, 
