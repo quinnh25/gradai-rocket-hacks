@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-WORKLOAD_CSV_FILE = "atlas1.csv"
-UNIFIED_CATALOG_FILE = "winter_2026_catalog_batch1.json"
+WORKLOAD_CSV_FILE = "atlas4.csv"
+UNIFIED_CATALOG_FILE = "winter_2026_catalog_batch4.json"
 TARGET_TERM_CODE = "2570"
 
 # --- UMich API Endpoints ---
