@@ -91,7 +91,7 @@ export default function CTA() {
               className="mt-6 sm:mt-0"
             >
               <Button size="lg" asChild className="group px-8 text-sm">
-                <Link href="/signup">
+                <Link href="/dashboard">
                   Get Started Free
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </Link>

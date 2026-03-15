@@ -80,7 +80,7 @@ export default function Hero() {
           className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
         >
           <Button size="lg" asChild className="group px-6 text-sm">
-            <Link href="/signup">
+              <Link href="/dashboard">
               Start Planning
               <motion.span
                 className="inline-block"
