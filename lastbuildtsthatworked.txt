@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-WORKLOAD_CSV_FILE = "umich_atlas_FINAL.csv"
+# WORKLOAD_CSV_FILE = "test.csv"
+WORKLOAD_CSV_FILE = "umich_atlas_workload_checkpoint_p130.csv"
 UNIFIED_CATALOG_FILE = "unified_catalog.json"
 TARGET_TERM_CODE = "2610"
 
@@ -102,18 +103,15 @@ def build_subject_school_map(headers):
 # ---------------------------------------------------------------------------
 
 def load_workload_csv(filepath):
-    """
-    Reads the CSV and returns a dict keyed by standardised course code (e.g. 'AAS 103').
-    Captures workload, course name, and advisory/enforced prerequisites from the same file.
-    """
-    print(f"📊 Loading course data from '{filepath}'...")
+    """Reads the CSV and returns a dict keyed by standardised course code (e.g. 'AAS 103')."""
+    print(f"📊 Loading workload CSV from '{filepath}'...")
     workload_db = {}
     try:
         with open(filepath, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 raw_code = row.get("Course Code", "").strip().upper()
-                match = re.match(r"([A-Z]+)\s*([0-9]+)", raw_code)
+                match = re.match(r"([A-Z]+)([0-9]+)", raw_code)
                 if match:
                     standard_code = f"{match.group(1)} {match.group(2)}"
                 else:
@@ -122,8 +120,6 @@ def load_workload_csv(filepath):
                     workload_db[standard_code] = {
                         "workload_percent": row.get("Workload %", "N/A"),
                         "course_name": row.get("Course Name", "").strip(),
-                        "advisory_prereqs": row.get("Advisory Prerequisites", "").strip(),
-                        "enforced_prereqs": row.get("Enforced Prerequisites", "").strip(),
                     }
         print(f"  ✅ Loaded {len(workload_db)} courses.")
         return workload_db
@@ -165,9 +161,11 @@ def fetch_sections(subject, catalog_nbr, school_code, headers):
 
     sections = []
     for sec in sections_raw:
+        # The spec uses EnrollmentStatus: "open" / "closed" directly on the section
         enrollment_status = sec.get("EnrollmentStatus", "").lower()
         available = sec.get("AvailableSeats", 0)
 
+        # Meeting is a single object per section in the Sections endpoint (not a list)
         meeting_raw = sec.get("Meeting", {})
         meetings = []
         if meeting_raw:
@@ -175,14 +173,17 @@ def fetch_sections(subject, catalog_nbr, school_code, headers):
                 meeting_raw = [meeting_raw]
             for m in meeting_raw:
                 meetings.append({
+                    # Spec field is "Times" (combined string e.g. "9:30AM - 10:30AM")
                     "Days": m.get("Days", ""),
                     "Times": m.get("Times", "TBA"),
                     "Location": m.get("Location", "TBA"),
+                    # Spec field is "Instructors" (string), not "InstructorName"
                     "Instructor": m.get("Instructors", "Staff"),
                     "StartDate": m.get("StartDate", ""),
                     "EndDate": m.get("EndDate", ""),
                 })
 
+        # ClassInstructors is an array of {InstrUniqname, InstrName}
         instructors_raw = sec.get("ClassInstructors", [])
         if not isinstance(instructors_raw, list):
             instructors_raw = [instructors_raw]
@@ -190,7 +191,7 @@ def fetch_sections(subject, catalog_nbr, school_code, headers):
 
         sections.append({
             "SectionNumber": sec.get("SectionNumber"),
-            "SectionType": sec.get("SectionType", ""),
+            "SectionType": sec.get("SectionType", ""),       # e.g. "LEC", "LAB", "DIS"
             "SectionTypeDescr": sec.get("SectionTypeDescr", ""),
             "InstructionMode": sec.get("InstructionMode", ""),
             "ClassNumber": sec.get("ClassNumber"),
@@ -251,12 +252,13 @@ def build_unified_catalog():
         "Accept": "application/json",
     }
 
+    # Build subject→school map once (avoids needing school code per course)
     subject_to_school = build_subject_school_map(headers)
 
     print(f"\n🌐 Fetching section data for {len(workload_data)} courses in term {TARGET_TERM_CODE}...\n")
     unified_catalog = {}
 
-    for course_code, course_info in workload_data.items():
+    for course_code, workload_info in workload_data.items():
         parts = course_code.split(" ")
         if len(parts) != 2:
             print(f"  ⚠️  Skipping malformed course code: '{course_code}'")
@@ -269,37 +271,37 @@ def build_unified_catalog():
             print(f"  ⚠️  No school found for subject '{subject}' — skipping {course_code}")
             continue
 
+        # Fetch sections (primary data)
         sections = fetch_sections(subject, catalog_nbr, school_code, headers)
 
         if not sections:
             print(f"  ⚠️  No sections found for {course_code} this term.")
+            # Still include the course in the catalog with empty availability
         else:
             print(f"  ✅ {course_code} — {len(sections)} section(s) fetched")
 
+        # Fetch course description (secondary call; skip if you want speed)
         course_descr = fetch_course_description(subject, catalog_nbr, school_code, headers)
 
+        # Determine credit hours from first section that has them
         credits = next(
             (s["CreditHours"] for s in sections if s.get("CreditHours")), 0
         )
 
         unified_catalog[course_code] = {
             "course_code": course_code,
-            "course_title": course_info.get("course_name", ""),
+            "course_title": workload_info.get("course_name", ""),
             "course_description": course_descr,
             "credits": credits,
             "school_code": school_code,
             "term": TARGET_TERM_CODE,
             "metrics": {
-                "workload_percent": course_info["workload_percent"],
-            },
-            "prerequisites": {
-                "advisory": course_info["advisory_prereqs"],
-                "enforced": course_info["enforced_prereqs"],
+                "workload_percent": workload_info["workload_percent"],
             },
             "availability": sections,
         }
 
-        time.sleep(0.3)
+        time.sleep(0.3)  # be polite to the gateway
 
     with open(UNIFIED_CATALOG_FILE, "w", encoding="utf-8") as f:
         json.dump(unified_catalog, f, indent=4)
