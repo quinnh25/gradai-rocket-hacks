@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ScheduleOutput } from "@/app/api/schedule/route";
-import type { GradPlanOutput } from "./DashboardClient";
+import type { GradPlanOutput } from "./types";
 
 interface Message {
   role: "user" | "assistant";
