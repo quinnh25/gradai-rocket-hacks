@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import ProfileBadge from "./profile-badge";
 import TranscriptUpload from "./TranscriptUpload";
 import ChatPlanner from "./ChatPlanner";
-import ScheduleBuilder from "./ScheduleBuilder";
 
 export default async function Dashboard() {
   const session = await auth.api.getSession({
@@ -22,20 +21,16 @@ export default async function Dashboard() {
       <ProfileBadge email={user.email} image={user.image} name={user.name} />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
             Welcome back, {user.name?.split(" ")[0]}
           </h1>
-          <p className="text-gray-500 mt-1">
-            Let&apos;s plan your path to graduation.
-          </p>
+          <p className="text-gray-500 mt-1">Let&apos;s plan your path to graduation.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
-          {/* ── Left column ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
+          {/* Left column */}
           <div className="space-y-4">
-            {/* Transcript */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
                 📄 Your Transcript
@@ -43,23 +38,19 @@ export default async function Dashboard() {
               <TranscriptUpload userId={user.id} />
             </div>
 
-            {/* Schedule Builder */}
-            <ScheduleBuilder userId={user.id} />
-
-            {/* Session info */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
               <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 🎓 Session
               </h2>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Signed in as</span>
-                  <span className="font-medium text-gray-700 truncate max-w-[160px] text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Signed in as</span>
+                  <span className="text-xs font-medium text-gray-700 truncate max-w-[160px]">
                     {user.email}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Status</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Status</span>
                   <span className="text-green-600 bg-green-50 rounded-full px-2 py-0.5 text-xs font-medium border border-green-100">
                     ✅ Active
                   </span>
@@ -68,7 +59,7 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* ── Right column: AI chat ── */}
+          {/* Chat */}
           <div
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
             style={{ height: "780px" }}

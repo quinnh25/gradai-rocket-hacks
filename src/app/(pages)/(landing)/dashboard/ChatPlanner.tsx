@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import WeeklyCalendar from "./WeeklyCalendar";
+import type { ScheduleOutput } from "@/app/api/schedule/route";
 
 interface Message {
   role: "user" | "assistant";
@@ -39,10 +41,27 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+// Parse assistant message — split out schedule-json block if present
+function parseAssistantContent(content: string): {
+  text: string;
+  schedule: ScheduleOutput | null;
+} {
+  const match = content.match(/```schedule-json\n([\s\S]*?)\n```/);
+  if (!match) return { text: content, schedule: null };
+
+  try {
+    const schedule = JSON.parse(match[1]) as ScheduleOutput;
+    const text = content.replace(/```schedule-json\n[\s\S]*?\n```/, "").trim();
+    return { text, schedule };
+  } catch {
+    return { text: content, schedule: null };
+  }
+}
+
 const SUGGESTED_PROMPTS = [
   "What courses should I take next semester?",
   "How close am I to finishing my degree?",
-  "Check my schedule for conflicts",
+  "Give me my full semester plan until graduation",
   "What EECS electives do you recommend?",
 ];
 
@@ -60,12 +79,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load chat list on mount
-  useEffect(() => {
-    loadChats();
-  }, [userId]);
-
-  // Auto-scroll to bottom
+  useEffect(() => { loadChats(); }, [userId]);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -77,11 +91,8 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         const data = await resp.json();
         setChats(data.chats ?? []);
       }
-    } catch {
-      // silently fail
-    } finally {
-      setLoadingChats(false);
-    }
+    } catch { /* silent */ }
+    finally { setLoadingChats(false); }
   };
 
   const selectChat = async (chatId: string) => {
@@ -96,11 +107,8 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         const data = await resp.json();
         setMessages(data.messages ?? []);
       }
-    } catch {
-      setError("Failed to load chat.");
-    } finally {
-      setLoadingMessages(false);
-    }
+    } catch { setError("Failed to load chat."); }
+    finally { setLoadingMessages(false); }
   };
 
   const startNewChat = () => {
@@ -117,9 +125,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
       await fetch(`/api/chats/${chatId}`, { method: "DELETE" });
       setChats((prev) => prev.filter((c) => c.id !== chatId));
       if (activeChatId === chatId) startNewChat();
-    } finally {
-      setDeletingId(null);
-    }
+    } finally { setDeletingId(null); }
   };
 
   const send = useCallback(async (text?: string) => {
@@ -153,12 +159,9 @@ export default function ChatPlanner({ userId }: { userId: string }) {
       const finalMessages = [...newMessages, { role: "assistant" as const, content: reply }];
       setMessages(finalMessages);
 
-      // Auto-generate title from first user message
       const title = messageText.slice(0, 60) + (messageText.length > 60 ? "…" : "");
 
-      // Save or update chat
       if (!activeChatId) {
-        // Create new chat
         const createResp = await fetch("/api/chats", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -173,7 +176,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
           ]);
         }
       } else {
-        // Update existing chat
         await fetch(`/api/chats/${activeChatId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -188,8 +190,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         );
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setError(msg);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -204,14 +205,10 @@ export default function ChatPlanner({ userId }: { userId: string }) {
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* ── Sidebar ── */}
-      <div
-        className={`flex flex-col border-r border-gray-100 bg-gray-50 transition-all duration-200 overflow-hidden flex-shrink-0
-          ${sidebarOpen ? "w-56" : "w-0"}`}
-      >
+      {/* Sidebar */}
+      <div className={`flex flex-col border-r border-gray-100 bg-gray-50 transition-all duration-200 overflow-hidden flex-shrink-0 ${sidebarOpen ? "w-56" : "w-0"}`}>
         {sidebarOpen && (
           <>
-            {/* New chat button */}
             <div className="p-3 border-b border-gray-100">
               <button
                 onClick={startNewChat}
@@ -221,35 +218,23 @@ export default function ChatPlanner({ userId }: { userId: string }) {
                 New Chat
               </button>
             </div>
-
-            {/* Chat list */}
             <div className="flex-1 overflow-y-auto py-2">
               {loadingChats ? (
                 <div className="flex items-center justify-center py-8">
                   <span className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-500 animate-spin" />
                 </div>
               ) : chats.length === 0 ? (
-                <p className="text-center text-xs text-gray-400 py-8 px-3">
-                  No saved chats yet
-                </p>
+                <p className="text-center text-xs text-gray-400 py-8 px-3">No saved chats yet</p>
               ) : (
                 chats.map((chat) => (
                   <div
                     key={chat.id}
                     onClick={() => selectChat(chat.id)}
                     className={`group relative mx-2 mb-1 rounded-lg px-3 py-2 cursor-pointer transition-colors
-                      ${activeChatId === chat.id
-                        ? "bg-blue-50 border border-blue-100"
-                        : "hover:bg-gray-100"
-                      }`}
+                      ${activeChatId === chat.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-100"}`}
                   >
-                    <p className="text-xs font-medium text-gray-700 truncate pr-5">
-                      {chat.title}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {timeAgo(chat.updatedAt)} · {chat.messageCount} msgs
-                    </p>
-                    {/* Delete button */}
+                    <p className="text-xs font-medium text-gray-700 truncate pr-5">{chat.title}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(chat.updatedAt)} · {chat.messageCount} msgs</p>
                     <button
                       onClick={(e) => deleteChat(chat.id, e)}
                       className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all text-xs"
@@ -264,21 +249,17 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         )}
       </div>
 
-      {/* ── Main chat area ── */}
+      {/* Main area */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Toggle sidebar button */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="text-gray-400 hover:text-gray-600 transition-colors text-sm"
-            title={sidebarOpen ? "Hide history" : "Show history"}
           >
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <span className="text-xs text-gray-400 font-medium">
-            {activeChatId
-              ? chats.find((c) => c.id === activeChatId)?.title ?? "Chat"
-              : "New Chat"}
+            {activeChatId ? chats.find((c) => c.id === activeChatId)?.title ?? "Chat" : "New Chat"}
           </span>
         </div>
 
@@ -291,14 +272,10 @@ export default function ChatPlanner({ userId }: { userId: string }) {
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-8">
-              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl">
-                🎓
-              </div>
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl">🎓</div>
               <div>
                 <p className="text-sm font-semibold text-gray-700">Ask GradAI anything</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  I can check your requirements, suggest courses, and build your schedule.
-                </p>
+                <p className="text-xs text-gray-400 mt-1">I can check your requirements, suggest courses, and build your schedule.</p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center mt-2">
                 {SUGGESTED_PROMPTS.map((prompt) => (
@@ -313,50 +290,49 @@ export default function ChatPlanner({ userId }: { userId: string }) {
               </div>
             </div>
           ) : (
-            messages.map((m, i) => (
-              <div
-                key={i}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {m.role === "assistant" && (
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">
-                    G
-                  </div>
-                )}
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm
-                    ${m.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-sm"
-                      : "bg-gray-100 text-gray-800 rounded-bl-sm"
-                    }`}
-                >
-                  {m.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none
-                      prose-headings:font-bold prose-headings:text-gray-800
-                      prose-p:leading-relaxed prose-p:my-1
-                      prose-ul:my-1 prose-li:my-0.5
-                      prose-table:text-xs prose-table:border-collapse
-                      prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300
-                      prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300
-                      prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded
-                      prose-strong:text-gray-900">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {m.content}
-                      </ReactMarkdown>
+            messages.map((m, i) => {
+              if (m.role === "assistant") {
+                const { text, schedule } = parseAssistantContent(m.content);
+                return (
+                  <div key={i} className="flex justify-start">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">G</div>
+                    <div className="max-w-[90%] space-y-3">
+                      {/* Text part */}
+                      {text && (
+                        <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm px-4 py-3 text-sm">
+                          <div className="prose prose-sm max-w-none
+                            prose-headings:font-bold prose-headings:text-gray-800
+                            prose-p:leading-relaxed prose-p:my-1
+                            prose-ul:my-1 prose-li:my-0.5
+                            prose-table:text-xs prose-table:border-collapse
+                            prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300
+                            prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300
+                            prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded
+                            prose-strong:text-gray-900">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                      {/* Calendar part */}
+                      {schedule && <WeeklyCalendar schedule={schedule} />}
                     </div>
-                  ) : (
-                    m.content
-                  )}
+                  </div>
+                );
+              }
+
+              return (
+                <div key={i} className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-sm px-4 py-3 text-sm bg-blue-600 text-white">
+                    {m.content}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
 
           {loading && (
             <div className="flex justify-start">
-              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">
-                G
-              </div>
+              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">G</div>
               <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3">
                 <div className="flex gap-1 items-center h-4">
                   <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
@@ -367,10 +343,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
             </div>
           )}
 
-          {error && (
-            <p className="text-center text-xs text-red-500 font-mono">{error}</p>
-          )}
-
+          {error && <p className="text-center text-xs text-red-500 font-mono">{error}</p>}
           <div ref={bottomRef} />
         </div>
 
@@ -399,9 +372,7 @@ export default function ChatPlanner({ userId }: { userId: string }) {
               Send
             </button>
           </div>
-          <p className="text-[10px] text-gray-300 text-center mt-2">
-            Press Enter to send · Shift+Enter for new line
-          </p>
+          <p className="text-[10px] text-gray-300 text-center mt-2">Press Enter to send · Shift+Enter for new line</p>
         </div>
       </div>
     </div>
