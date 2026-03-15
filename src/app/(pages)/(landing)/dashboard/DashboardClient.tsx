@@ -3,29 +3,9 @@
 import { useState } from "react";
 import TranscriptUpload from "./TranscriptUpload";
 import ChatPlanner from "./ChatPlanner";
-import WeeklyCalendar from "./WeeklyCalendar";
+import SchedulePanel from "./SchedulePanel";
 import type { ScheduleOutput } from "@/app/api/schedule/route";
-
-// ── Types for graduation plan ─────────────────────────────────────────────────
-
-interface GradPlanCourse {
-  code: string;
-  credits: number;
-  requirement: string;
-  notes?: string;
-}
-
-interface GradPlanSemester {
-  label: string;       // "Fall 2026"
-  courses: GradPlanCourse[];
-  totalCredits: number;
-}
-
-export interface GradPlanOutput {
-  semesters: GradPlanSemester[];
-  totalCreditsRemaining: number;
-  expectedGraduation: string;
-}
+import type { GradPlanOutput } from "./types";
 
 interface DashboardClientProps {
   userId: string;
@@ -36,7 +16,6 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
   const [weeklySchedule, setWeeklySchedule] = useState<ScheduleOutput | null>(null);
   const [gradPlan, setGradPlan] = useState<GradPlanOutput | null>(null);
 
-  // Called by ChatPlanner whenever AI returns structured data
   const handleScheduleData = (data: {
     weeklySchedule?: ScheduleOutput;
     gradPlan?: GradPlanOutput;
@@ -47,7 +26,7 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
 
   return (
     <div className="space-y-6">
-      {/* ── Top row: transcript + chat ── */}
+      {/* Top row: transcript + chat */}
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
         {/* Left */}
         <div className="space-y-4">
@@ -57,7 +36,6 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
             </h2>
             <TranscriptUpload userId={userId} />
           </div>
-
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
               🎓 Session
@@ -90,43 +68,16 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
         </div>
       </div>
 
-      {/* ── Bottom row: schedule panels ── */}
+      {/* Bottom row: schedule panels */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Weekly calendar panel */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-gray-800">📅 Weekly Schedule</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {weeklySchedule
-                  ? `${weeklySchedule.termLabel} · ${weeklySchedule.totalCredits} credits`
-                  : "Ask GradAI for your next semester schedule"}
-              </p>
-            </div>
-            {weeklySchedule && (
-              <button
-                onClick={() => setWeeklySchedule(null)}
-                className="text-xs text-gray-400 hover:text-gray-600"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+        {/* Weekly schedule — now uses smart SchedulePanel */}
+        <SchedulePanel
+          userId={userId}
+          schedule={weeklySchedule}
+          onSchedule={setWeeklySchedule}
+        />
 
-          {!weeklySchedule ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl mb-3">📅</div>
-              <p className="text-sm font-medium text-gray-600">No schedule yet</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Ask GradAI: <span className="italic">"What should I take next semester?"</span>
-              </p>
-            </div>
-          ) : (
-            <WeeklyCalendar schedule={weeklySchedule} />
-          )}
-        </div>
-
-        {/* Graduation plan panel */}
+        {/* Graduation plan */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
@@ -138,12 +89,7 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
               </p>
             </div>
             {gradPlan && (
-              <button
-                onClick={() => setGradPlan(null)}
-                className="text-xs text-gray-400 hover:text-gray-600"
-              >
-                Clear
-              </button>
+              <button onClick={() => setGradPlan(null)} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
             )}
           </div>
 
@@ -159,14 +105,10 @@ export default function DashboardClient({ userId, userEmail }: DashboardClientPr
             <div className="overflow-auto max-h-[600px]">
               {gradPlan.semesters.map((sem, i) => (
                 <div key={i} className="border-b border-gray-50 last:border-0">
-                  {/* Semester header */}
                   <div className="px-5 py-2.5 bg-gray-50 flex items-center justify-between">
                     <span className="text-xs font-bold text-gray-700">{sem.label}</span>
-                    <span className="text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-2 py-0.5">
-                      {sem.totalCredits} cr
-                    </span>
+                    <span className="text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-2 py-0.5">{sem.totalCredits} cr</span>
                   </div>
-                  {/* Courses table */}
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-100">
