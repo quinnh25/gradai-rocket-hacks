@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { ArrowLeft, Brain, Database, GraduationCap, Music, Sparkles, Zap, Code2, FlaskConical, Calculator } from "lucide-react";
+import { ArrowLeft, Brain, Database, GraduationCap, Music, Sparkles, Zap, Code2, Atom, Calculator } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
@@ -88,7 +88,7 @@ const team = [
     role: "Computer Engineering",
     bio: "Passionate about discrete mathematics, quantum systems, and electromagnetics.",
     initial: "B",
-    icon: FlaskConical,
+    icon: Atom,
     bobDuration: 5.2,
     rotation: 2,
   },
