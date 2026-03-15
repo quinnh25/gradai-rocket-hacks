@@ -1,27 +1,42 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth"; // Make sure this path points to your actual auth.ts file
+import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function Dashboard() {
-  // 1. Check if the user is logged in
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  // 2. If no session exists, kick them back to the home page immediately
   if (!session) {
     redirect("/");
   }
 
-  // 3. We have a session! Extract the user data
   const user = session.user;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+      
+      {/* Profile badge — top right */}
+      <div className="fixed top-4 right-4">
+        <div className="flex items-center gap-2 bg-green-500/20 border border-green-500 text-green-700 px-4 py-2 rounded-full">
+          {user.image ? (
+            <img
+              src={user.image}
+              alt="Profile"
+              className="w-7 h-7 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-green-200 flex items-center justify-center text-green-700 text-xs font-bold">
+              {user.name?.[0] ?? "?"}
+            </div>
+          )}
+          <span className="text-sm font-medium">{user.email}</span>
+        </div>
+      </div>
+
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
         
-        {/* User Avatar (Google Profile Picture) or Success Checkmark */}
         {user.image ? (
           <img 
             src={user.image} 
@@ -36,7 +51,6 @@ export default async function Dashboard() {
           </div>
         )}
 
-        {/* Personalized Welcome */}
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
           Welcome, {user.name?.split(' ')[0]}!
         </h1>
