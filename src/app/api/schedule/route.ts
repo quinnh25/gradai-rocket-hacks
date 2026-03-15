@@ -582,7 +582,7 @@ export async function POST(req: NextRequest) {
       programs = await db
         .collection("programs")
         .find({ _id: { $in: programIds } })
-        .toArray() as { programName: string; requirementBlocks: RequirementBlock[] }[];
+        .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
     }
 
     if (programs.length === 0) {
