@@ -3,9 +3,11 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import FloatingCards from "./floating-cards";
 import GridBackground from "./grid-background";
+import { authClient } from "@/lib/auth/client";
 
 const wordVariants = {
   hidden: { opacity: 0, y: 24, filter: "blur(10px)" },
@@ -24,6 +26,16 @@ const wordVariants = {
 
 export default function Hero() {
   const headlineWords = ["Your", "path", "to", "graduation,", "simplified."];
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  function handleStartPlanning() {
+    if (session?.user) {
+      router.push("/dashboard");
+    } else {
+      authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    }
+  }
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pt-20">
@@ -79,17 +91,15 @@ export default function Hero() {
           transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.65 }}
           className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
         >
-          <Button size="lg" asChild className="group px-6 text-sm">
-              <Link href="/dashboard">
-              Start Planning
-              <motion.span
-                className="inline-block"
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <ArrowRight className="size-4" />
-              </motion.span>
-            </Link>
+          <Button size="lg" className="group px-6 text-sm" onClick={handleStartPlanning}>
+            Start Planning
+            <motion.span
+              className="inline-block"
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <ArrowRight className="size-4" />
+            </motion.span>
           </Button>
           <Button variant="outline" size="lg" asChild className="px-6 text-sm">
             <Link href="#how-it-works">See How It Works</Link>
