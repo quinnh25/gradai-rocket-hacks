@@ -1,30 +1,13 @@
 /**
  * lib/ai-tools.ts
- *
- * Tool definitions for GradAI — written for the Gemini REST API.
- *
- * Gemini uses a different tool schema than Anthropic:
- *   - Tools are grouped under `function_declarations` inside a `tools` array
- *   - Each function has: name, description, parameters (JSON Schema)
- *   - Tool results are sent back as { role: "user", parts: [{ functionResponse: ... }] }
- *
- * Field names here match your ACTUAL MongoDB documents:
- *   courses:  course_code, course_title, credits, availability[], metrics.workload_percent,
- *             prerequisites.advisory / .enforced, school_code, term
- *   programs: program_name, program_type, college, overall_total_credits,
- *             requirement_blocks[].block_name, .mandatory_courses[], .elective_options[],
- *             .credits_required_for_block, .rules_and_restrictions
- *   students: userId, enrolledPrograms[], transcript[], preferences
- *
- * Usage in your API route:
- *   import { GEMINI_TOOLS, executeTool } from "@/lib/ai-tools";
+ * Fixed field names to match actual MongoDB documents:
+ *   blockName, creditsRequired, mandatoryCourses, electiveOptions, rules,
+ *   programName, programType, totalCredits
  */
 
 import { MongoClient, Db, ObjectId } from "mongodb";
 
 // ─── Gemini Tool Definitions ──────────────────────────────────────────────────
-// These are passed directly to the Gemini API as the `tools` array.
-// Gemini groups all functions under `function_declarations` in one tools object.
 
 export const GEMINI_TOOLS = [
   {
@@ -40,8 +23,7 @@ export const GEMINI_TOOLS = [
           properties: {
             course_code: {
               type: "string",
-              description:
-                "The course code, e.g. 'EECS 281' or 'MATH 215'. Must include the space.",
+              description: "The course code, e.g. 'EECS 281' or 'MATH 215'.",
             },
           },
           required: ["course_code"],
@@ -52,33 +34,24 @@ export const GEMINI_TOOLS = [
         description:
           "Search for courses by department, keyword, or credit count. " +
           "Use this to discover elective options or find courses in a subject area. " +
-          "Returns up to 20 results with basic info (no full section data).",
+          "Returns up to 20 results with basic info.",
         parameters: {
           type: "object",
           properties: {
             department: {
               type: "string",
-              description:
-                "Filter by department prefix, e.g. 'EECS', 'MATH', 'STATS'",
+              description: "Filter by department prefix, e.g. 'EECS', 'MATH', 'LING'",
             },
             keyword: {
               type: "string",
-              description:
-                "Keyword to search in course title or description, e.g. 'machine learning'",
+              description: "Keyword to search in course title or description",
             },
-            min_credits: {
-              type: "number",
-              description: "Minimum credit hours (inclusive)",
-            },
-            max_credits: {
-              type: "number",
-              description: "Maximum credit hours (inclusive)",
-            },
+            min_credits: { type: "number" },
+            max_credits: { type: "number" },
             exclude_course_codes: {
               type: "array",
               items: { type: "string" },
-              description:
-                "Course codes to exclude from results, e.g. already-completed courses",
+              description: "Course codes to exclude, e.g. already-completed courses",
             },
           },
           required: [],
@@ -87,9 +60,8 @@ export const GEMINI_TOOLS = [
       {
         name: "get_student_profile",
         description:
-          "Fetch a student's transcript (completed courses + grades), enrolled programs, " +
-          "and preferences. Always call this first at the start of any planning session " +
-          "to understand what the student has already done.",
+          "Fetch a student's transcript (completed courses), enrolled programs, and preferences. " +
+          "Always call this first at the start of any planning session.",
         parameters: {
           type: "object",
           properties: {
@@ -105,8 +77,7 @@ export const GEMINI_TOOLS = [
         name: "check_requirements",
         description:
           "Check how close a student is to fulfilling all requirements for their enrolled programs. " +
-          "Returns a block-by-block breakdown: which blocks are fulfilled, which are partially met, " +
-          "which are missing, and which specific courses still need to be taken.",
+          "Returns a block-by-block breakdown of fulfilled, partial, and missing requirements.",
         parameters: {
           type: "object",
           properties: {
@@ -122,15 +93,13 @@ export const GEMINI_TOOLS = [
         name: "get_program_requirements",
         description:
           "Fetch the full requirement blocks for a specific program. " +
-          "Use this when you need to know exactly which courses are mandatory or optional " +
-          "for a given major or minor.",
+          "Use this to see exactly which courses are mandatory or optional for a major/minor.",
         parameters: {
           type: "object",
           properties: {
             program_name: {
               type: "string",
-              description:
-                "Program name (partial match ok), e.g. 'Computer Engineering' or 'Electrical Engineering'",
+              description: "Program name (partial match ok), e.g. 'Computer Engineering'",
             },
             program_type: {
               type: "string",
@@ -143,16 +112,15 @@ export const GEMINI_TOOLS = [
       {
         name: "check_schedule_conflicts",
         description:
-          "Given a list of course codes, check whether any of their lecture sections conflict " +
-          "in the current term. Returns conflicting pairs with details, or confirms schedule is clear.",
+          "Given a list of course codes, check whether any of their lecture sections conflict. " +
+          "Returns conflicting pairs with details, or confirms schedule is clear.",
         parameters: {
           type: "object",
           properties: {
             course_codes: {
               type: "array",
               items: { type: "string" },
-              description:
-                "List of course codes to check together, e.g. ['EECS 281', 'MATH 216']",
+              description: "List of course codes to check, e.g. ['EECS 281', 'MATH 216']",
             },
           },
           required: ["course_codes"],
@@ -174,78 +142,7 @@ async function getDb(): Promise<Db> {
   return _client.db();
 }
 
-// ─── Type Helpers ─────────────────────────────────────────────────────────────
-
 type ToolInput = Record<string, unknown>;
-
-// Shape of a course document in your MongoDB `courses` collection
-interface CourseDoc {
-  course_code: string;
-  course_title: string;
-  course_description?: string;
-  credits: number;
-  school_code: string;
-  term: string;
-  metrics?: { workload_percent?: string };
-  prerequisites?: { advisory?: string; enforced?: string };
-  availability?: SectionDoc[];
-  [key: string]: unknown;
-}
-
-interface SectionDoc {
-  SectionType?: string;
-  SectionTypeDescr?: string;
-  Status?: string;
-  EnrollmentStatus?: string;
-  AvailableSeats?: number;
-  Meetings?: MeetingDoc[];
-  [key: string]: unknown;
-}
-
-interface MeetingDoc {
-  Days?: string;
-  Times?: string;
-  Location?: string;
-  Instructor?: string;
-  [key: string]: unknown;
-}
-
-// Shape of a program document
-interface ProgramDoc {
-  _id: ObjectId;
-  program_name: string;
-  program_type: string;
-  college: string;
-  overall_total_credits: number;
-  requirement_blocks?: RequirementBlock[];
-  [key: string]: unknown;
-}
-
-interface RequirementBlock {
-  block_name: string;
-  credits_required_for_block: number;
-  mandatory_courses?: string[];
-  elective_options?: string[];
-  rules_and_restrictions?: string;
-  [key: string]: unknown;
-}
-
-// Shape of a student document
-interface StudentDoc {
-  userId: string;
-  enrolledPrograms?: string[];
-  transcript?: TranscriptEntry[];
-  preferences?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-interface TranscriptEntry {
-  course_code: string;
-  credits: number;
-  grade?: string;
-  term?: string;
-  [key: string]: unknown;
-}
 
 // ─── Tool Implementations ─────────────────────────────────────────────────────
 
@@ -256,17 +153,17 @@ export async function executeTool(
   const db = await getDb();
 
   switch (toolName) {
+
     // ── get_course ────────────────────────────────────────────────────────────
     case "get_course": {
       const course = await db
-        .collection<CourseDoc>("courses")
+        .collection("courses")
         .findOne({ course_code: input.course_code as string });
 
       if (!course) {
-        return { error: `Course '${input.course_code}' not found in the catalog.` };
+        return { error: `Course '${input.course_code}' not found.` };
       }
 
-      // Return a clean summary — full availability array can be huge
       return {
         course_code: course.course_code,
         course_title: course.course_title,
@@ -276,22 +173,11 @@ export async function executeTool(
         term: course.term,
         workload_percent: course.metrics?.workload_percent ?? "N/A",
         prerequisites: course.prerequisites ?? { advisory: "N/A", enforced: "N/A" },
-        sections_summary: (course.availability ?? []).map((s) => ({
-          section_type: s.SectionType,
-          status: s.Status,
-          available_seats: s.AvailableSeats,
-          meetings: (s.Meetings ?? []).map((m) => ({
-            days: m.Days,
-            times: m.Times,
-            location: m.Location,
-          })),
-        })),
-        total_sections: (course.availability ?? []).length,
         open_sections: (course.availability ?? []).filter(
-          (s) =>
-            s.EnrollmentStatus === "open" ||
-            s.Status === "Open"
+          (s: { EnrollmentStatus?: string; Status?: string }) =>
+            s.EnrollmentStatus === "open" || s.Status === "Open"
         ).length,
+        total_sections: (course.availability ?? []).length,
       };
     }
 
@@ -299,61 +185,35 @@ export async function executeTool(
     case "search_courses": {
       const filter: Record<string, unknown> = {};
 
-      // Filter by department prefix (course_code starts with "DEPT ")
       if (input.department) {
-        filter.course_code = {
-          $regex: `^${input.department}\\s`,
-          $options: "i",
-        };
+        filter.course_code = { $regex: `^${input.department}\\s`, $options: "i" };
       }
 
-      // Keyword search in title or description
       if (input.keyword) {
         const kw = { $regex: input.keyword as string, $options: "i" };
-        if (filter.course_code) {
-          // Combine department filter with keyword using $and
-          filter.$and = [
-            { course_code: filter.course_code },
-            { $or: [{ course_title: kw }, { course_description: kw }] },
-          ];
-          delete filter.course_code;
-        } else {
-          filter.$or = [{ course_title: kw }, { course_description: kw }];
-        }
+        filter.$or = [{ course_title: kw }, { course_description: kw }];
       }
 
-      // Credit range
       if (input.min_credits !== undefined || input.max_credits !== undefined) {
-        const creditFilter: Record<string, number> = {};
-        if (input.min_credits !== undefined)
-          creditFilter.$gte = input.min_credits as number;
-        if (input.max_credits !== undefined)
-          creditFilter.$lte = input.max_credits as number;
-        filter.credits = creditFilter;
+        const cf: Record<string, number> = {};
+        if (input.min_credits !== undefined) cf.$gte = input.min_credits as number;
+        if (input.max_credits !== undefined) cf.$lte = input.max_credits as number;
+        filter.credits = cf;
       }
 
-      // Exclude already-completed courses
-      if (
-        input.exclude_course_codes &&
-        Array.isArray(input.exclude_course_codes) &&
-        input.exclude_course_codes.length > 0
-      ) {
+      if (Array.isArray(input.exclude_course_codes) && input.exclude_course_codes.length > 0) {
         filter.course_code = {
-          ...(typeof filter.course_code === "object" ? (filter.course_code as object) : {}),
+          ...(typeof filter.course_code === "object" ? filter.course_code as object : {}),
           $nin: input.exclude_course_codes,
         };
       }
 
       const results = await db
-        .collection<CourseDoc>("courses")
+        .collection("courses")
         .find(filter, {
           projection: {
-            course_code: 1,
-            course_title: 1,
-            credits: 1,
-            "metrics.workload_percent": 1,
-            "prerequisites.enforced": 1,
-            _id: 0,
+            course_code: 1, course_title: 1, credits: 1,
+            "metrics.workload_percent": 1, "prerequisites.enforced": 1, _id: 0,
           },
         })
         .limit(20)
@@ -374,57 +234,50 @@ export async function executeTool(
     // ── get_student_profile ───────────────────────────────────────────────────
     case "get_student_profile": {
       const student = await db
-        .collection<StudentDoc>("students")
+        .collection("students")
         .findOne({ userId: input.user_id as string });
 
       if (!student) {
         return {
           error: `No student profile found for user ID '${input.user_id}'. ` +
-            "The student may need to complete onboarding first.",
+            "The student needs to upload their transcript on the dashboard first.",
         };
       }
 
-      // Hydrate enrolled program names
       const programIds = (student.enrolledPrograms ?? []).map(
-        (id) => new ObjectId(id)
+        (id: string) => new ObjectId(id)
       );
-      const programs = await db
-        .collection<ProgramDoc>("programs")
-        .find(
-          { _id: { $in: programIds } },
-          {
-            projection: {
-              program_name: 1,
-              program_type: 1,
-              college: 1,
-              overall_total_credits: 1,
-            },
-          }
-        )
-        .toArray();
+      const programs = programIds.length > 0
+        ? await db
+            .collection("programs")
+            .find(
+              { _id: { $in: programIds } },
+              { projection: { programName: 1, programType: 1, college: 1, totalCredits: 1 } }
+            )
+            .toArray()
+        : [];
 
       const transcript = student.transcript ?? [];
-      const totalCompletedCredits = transcript.reduce(
-        (sum, c) => sum + (c.credits ?? 0),
-        0
+      const totalCredits = transcript.reduce(
+        (sum: number, c: { credits: number }) => sum + (c.credits ?? 0), 0
       );
 
       return {
         user_id: student.userId,
         enrolled_programs: programs.map((p) => ({
           id: p._id.toString(),
-          program_name: p.program_name,
-          program_type: p.program_type,
+          program_name: p.programName,
+          program_type: p.programType,
           college: p.college,
-          total_credits_required: p.overall_total_credits,
+          total_credits_required: p.totalCredits,
         })),
-        transcript: transcript.map((c) => ({
+        transcript: transcript.map((c: { course_code: string; credits: number; grade?: string; term?: string }) => ({
           course_code: c.course_code,
           credits: c.credits,
           grade: c.grade ?? "N/A",
           term: c.term ?? "N/A",
         })),
-        total_completed_credits: totalCompletedCredits,
+        total_completed_credits: totalCredits,
         preferences: student.preferences ?? {},
       };
     }
@@ -432,80 +285,81 @@ export async function executeTool(
     // ── check_requirements ────────────────────────────────────────────────────
     case "check_requirements": {
       const student = await db
-        .collection<StudentDoc>("students")
+        .collection("students")
         .findOne({ userId: input.user_id as string });
 
       if (!student) {
         return { error: `No student profile found for user ID '${input.user_id}'.` };
       }
 
-      // Build sets of completed course codes and a credit lookup
       const transcript = student.transcript ?? [];
-      const completedSet = new Set(transcript.map((c) => c.course_code));
+      const completedSet = new Set(
+        transcript.map((c: { course_code: string }) => c.course_code)
+      );
       const creditLookup: Record<string, number> = {};
       for (const c of transcript) {
         creditLookup[c.course_code] = c.credits ?? 3;
       }
 
-      // Load enrolled programs with full requirement data
       const programIds = (student.enrolledPrograms ?? []).map(
-        (id) => new ObjectId(id)
+        (id: string) => new ObjectId(id)
       );
-      const programs = await db
-        .collection<ProgramDoc>("programs")
-        .find({ _id: { $in: programIds } })
-        .toArray();
+      const programs = programIds.length > 0
+        ? await db.collection("programs").find({ _id: { $in: programIds } }).toArray()
+        : [];
+
+      if (programs.length === 0) {
+        return {
+          error: "No enrolled programs found for this student. " +
+            "They need to select their major on the dashboard.",
+          transcript_courses: transcript.length,
+          suggestion: "Use get_program_requirements to look up 'Computer Engineering' and plan from there.",
+        };
+      }
 
       const summary = programs.map((prog) => {
-        const blocks = (prog.requirement_blocks ?? []).map((block) => {
-          const mandatory = block.mandatory_courses ?? [];
-          const electives = block.elective_options ?? [];
-          const creditsRequired = block.credits_required_for_block ?? 0;
+        // ← uses camelCase field names matching your actual MongoDB documents
+        const blocks = (prog.requirementBlocks ?? []).map((block: {
+          blockName: string;
+          creditsRequired: number;
+          mandatoryCourses?: string[];
+          electiveOptions?: string[];
+          rules?: string;
+        }) => {
+          const mandatory = block.mandatoryCourses ?? [];
+          const electives = block.electiveOptions ?? [];
+          const creditsRequired = block.creditsRequired ?? 0;
 
           const metMandatory = mandatory.filter((c) => completedSet.has(c));
           const missingMandatory = mandatory.filter((c) => !completedSet.has(c));
-
           const metElectives = electives.filter((c) => completedSet.has(c));
-          const electiveCreditsEarned = metElectives.reduce(
-            (sum, c) => sum + (creditLookup[c] ?? 3),
-            0
-          );
-          const mandatoryCreditsEarned = metMandatory.reduce(
-            (sum, c) => sum + (creditLookup[c] ?? 3),
-            0
-          );
 
-          const totalEarned = mandatoryCreditsEarned + electiveCreditsEarned;
-          const fulfilled =
-            missingMandatory.length === 0 && totalEarned >= creditsRequired;
+          const earned =
+            metMandatory.reduce((s, c) => s + (creditLookup[c] ?? 3), 0) +
+            metElectives.reduce((s, c) => s + (creditLookup[c] ?? 3), 0);
 
-          let status: string;
-          if (fulfilled) {
-            status = "✅ Complete";
-          } else if (missingMandatory.length > 0) {
-            status = `⚠️ Missing required: ${missingMandatory.join(", ")}`;
-          } else {
-            status = `📊 Need ${creditsRequired - totalEarned} more credits from electives`;
-          }
+          const fulfilled = missingMandatory.length === 0 && earned >= creditsRequired;
 
           return {
-            block_name: block.block_name,
+            block_name: block.blockName,
             credits_required: creditsRequired,
-            credits_earned: totalEarned,
+            credits_earned: earned,
             fulfilled,
             courses_completed: [...metMandatory, ...metElectives],
             mandatory_missing: missingMandatory,
-            status,
+            status: fulfilled
+              ? "✅ Complete"
+              : missingMandatory.length > 0
+              ? `⚠️ Missing required: ${missingMandatory.join(", ")}`
+              : `📊 Need ${creditsRequired - earned} more elective credits`,
           };
         });
 
-        const fulfilledBlocks = blocks.filter((b) => b.fulfilled).length;
-
         return {
-          program_name: prog.program_name,
-          program_type: prog.program_type,
-          total_credits_required: prog.overall_total_credits,
-          blocks_fulfilled: fulfilledBlocks,
+          program_name: prog.programName,
+          program_type: prog.programType,
+          total_credits_required: prog.totalCredits,
+          blocks_fulfilled: blocks.filter((b: { fulfilled: boolean }) => b.fulfilled).length,
           blocks_total: blocks.length,
           blocks,
         };
@@ -517,37 +371,42 @@ export async function executeTool(
     // ── get_program_requirements ──────────────────────────────────────────────
     case "get_program_requirements": {
       const filter: Record<string, unknown> = {
-        program_name: {
-          $regex: input.program_name as string,
-          $options: "i",
-        },
+        programName: { $regex: input.program_name as string, $options: "i" },
       };
-      if (input.program_type) {
-        filter.program_type = input.program_type;
-      }
+      if (input.program_type) filter.programType = input.program_type;
 
-      const program = await db
-        .collection<ProgramDoc>("programs")
-        .findOne(filter);
+      const program = await db.collection("programs").findOne(filter);
 
       if (!program) {
+        // List available programs to help the AI pick the right name
+        const available = await db
+          .collection("programs")
+          .find({}, { projection: { programName: 1, programType: 1, _id: 0 } })
+          .toArray();
         return {
-          error: `Program matching '${input.program_name}' not found. ` +
-            "Try a shorter search term like 'Computer Engineering' or 'Electrical'.",
+          error: `Program matching '${input.program_name}' not found.`,
+          available_programs: available.map((p) => `${p.programName} (${p.programType})`),
         };
       }
 
       return {
-        program_name: program.program_name,
-        program_type: program.program_type,
+        program_name: program.programName,
+        program_type: program.programType,
         college: program.college,
-        total_credits_required: program.overall_total_credits,
-        requirement_blocks: (program.requirement_blocks ?? []).map((b) => ({
-          block_name: b.block_name,
-          credits_required: b.credits_required_for_block,
-          mandatory_courses: b.mandatory_courses ?? [],
-          elective_options: b.elective_options ?? [],
-          rules: b.rules_and_restrictions ?? "",
+        total_credits_required: program.totalCredits,
+        // ← camelCase to match your actual MongoDB documents
+        requirement_blocks: (program.requirementBlocks ?? []).map((b: {
+          blockName: string;
+          creditsRequired: number;
+          mandatoryCourses?: string[];
+          electiveOptions?: string[];
+          rules?: string;
+        }) => ({
+          block_name: b.blockName,
+          credits_required: b.creditsRequired,
+          mandatory_courses: b.mandatoryCourses ?? [],
+          elective_options: b.electiveOptions ?? [],
+          rules: b.rules ?? "",
         })),
       };
     }
@@ -557,83 +416,50 @@ export async function executeTool(
       const courseCodes = input.course_codes as string[];
 
       const courses = await db
-        .collection<CourseDoc>("courses")
+        .collection("courses")
         .find({ course_code: { $in: courseCodes } })
-        .project<CourseDoc>({ course_code: 1, course_title: 1, availability: 1 })
         .toArray();
 
-      // Helper: parse "8:30AM - 10:00AM" → { start: minutes, end: minutes }
-      function parseTime(timeStr: string): { start: number; end: number } | null {
-        const match = timeStr.match(
-          /(\d+):(\d+)(AM|PM)\s*-\s*(\d+):(\d+)(AM|PM)/i
-        );
-        if (!match) return null;
-
-        let startH = parseInt(match[1]);
-        const startM = parseInt(match[2]);
-        const startPeriod = match[3].toUpperCase();
-        let endH = parseInt(match[4]);
-        const endM = parseInt(match[5]);
-        const endPeriod = match[6].toUpperCase();
-
-        if (startPeriod === "PM" && startH !== 12) startH += 12;
-        if (startPeriod === "AM" && startH === 12) startH = 0;
-        if (endPeriod === "PM" && endH !== 12) endH += 12;
-        if (endPeriod === "AM" && endH === 12) endH = 0;
-
-        return { start: startH * 60 + startM, end: endH * 60 + endM };
+      function parseTime(t: string): { start: number; end: number } | null {
+        const m = t.match(/(\d+):(\d+)(AM|PM)\s*-\s*(\d+):(\d+)(AM|PM)/i);
+        if (!m) return null;
+        let sh = parseInt(m[1]), sm = parseInt(m[2]);
+        let eh = parseInt(m[4]), em = parseInt(m[5]);
+        if (m[3].toUpperCase() === "PM" && sh !== 12) sh += 12;
+        if (m[3].toUpperCase() === "AM" && sh === 12) sh = 0;
+        if (m[6].toUpperCase() === "PM" && eh !== 12) eh += 12;
+        if (m[6].toUpperCase() === "AM" && eh === 12) eh = 0;
+        return { start: sh * 60 + sm, end: eh * 60 + em };
       }
 
-      // Helper: check if two day-strings share any days
-      // Handles: "Mo", "Tu", "We", "Th", "Fr", "TuTh", "MoWe", "MoWeFr", etc.
       function daysOverlap(a: string, b: string): boolean {
-        const expand = (d: string): string[] => {
+        const expand = (d: string) => {
           const map: Record<string, string[]> = {
-            Mo: ["Mo"],
-            Tu: ["Tu"],
-            We: ["We"],
-            Th: ["Th"],
-            Fr: ["Fr"],
-            MoWe: ["Mo", "We"],
-            TuTh: ["Tu", "Th"],
-            MoWeFr: ["Mo", "We", "Fr"],
+            Mo: ["Mo"], Tu: ["Tu"], We: ["We"], Th: ["Th"], Fr: ["Fr"],
+            MoWe: ["Mo", "We"], TuTh: ["Tu", "Th"], MoWeFr: ["Mo", "We", "Fr"],
           };
-          return map[d] ?? d.match(/.{2}/g) ?? [d];
+          return map[d] ?? [d];
         };
-        const daysA = expand(a);
-        const daysB = expand(b);
-        return daysA.some((d) => daysB.includes(d));
+        return expand(a).some((d) => expand(b).includes(d));
       }
 
       const conflicts: { course1: string; course2: string; reason: string }[] = [];
 
       for (let i = 0; i < courses.length; i++) {
         for (let j = i + 1; j < courses.length; j++) {
-          const a = courses[i];
-          const b = courses[j];
-
-          // Only check lecture sections against each other
-          const aLecs = (a.availability ?? []).filter(
-            (s) => s.SectionType === "LEC"
-          );
-          const bLecs = (b.availability ?? []).filter(
-            (s) => s.SectionType === "LEC"
-          );
+          const a = courses[i], b = courses[j];
+          const aLecs = (a.availability ?? []).filter((s: { SectionType?: string }) => s.SectionType === "LEC");
+          const bLecs = (b.availability ?? []).filter((s: { SectionType?: string }) => s.SectionType === "LEC");
 
           for (const sA of aLecs) {
-            for (const mA of sA.Meetings ?? []) {
+            for (const mA of (sA.Meetings ?? [])) {
               if (!mA.Days || mA.Days === "TBA" || !mA.Times || mA.Times === "TBA") continue;
-
               for (const sB of bLecs) {
-                for (const mB of sB.Meetings ?? []) {
+                for (const mB of (sB.Meetings ?? [])) {
                   if (!mB.Days || mB.Days === "TBA" || !mB.Times || mB.Times === "TBA") continue;
-
                   if (!daysOverlap(mA.Days, mB.Days)) continue;
-
-                  const tA = parseTime(mA.Times);
-                  const tB = parseTime(mB.Times);
+                  const tA = parseTime(mA.Times), tB = parseTime(mB.Times);
                   if (!tA || !tB) continue;
-
                   if (tA.start < tB.end && tA.end > tB.start) {
                     conflicts.push({
                       course1: a.course_code,
@@ -648,7 +474,6 @@ export async function executeTool(
         }
       }
 
-      // Note any requested courses not found in DB
       const foundCodes = new Set(courses.map((c) => c.course_code));
       const notFound = courseCodes.filter((c) => !foundCodes.has(c));
 
@@ -656,10 +481,9 @@ export async function executeTool(
         has_conflicts: conflicts.length > 0,
         conflicts,
         courses_not_found: notFound,
-        message:
-          conflicts.length === 0
-            ? `✅ No schedule conflicts among: ${courseCodes.join(", ")}`
-            : `⚠️ ${conflicts.length} conflict(s) detected`,
+        message: conflicts.length === 0
+          ? `✅ No conflicts among: ${courseCodes.join(", ")}`
+          : `⚠️ ${conflicts.length} conflict(s) detected`,
       };
     }
 
