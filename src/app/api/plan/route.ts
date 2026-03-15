@@ -1,41 +1,18 @@
 /**
  * app/api/plan/route.ts
- *
- * POST /api/plan
- *
- * Gemini-powered academic planning endpoint with tool calling.
- * When the student asks for a single-semester schedule, Gemini calls
- * the build_schedule tool which runs the backtracking scheduler and
- * returns a ScheduleOutput that gets sent to the weekly calendar panel.
- *
- * Request body:
- *   { userId: string, message: string, history?: GeminiMessage[] }
- *
- * Response:
- *   { reply: string, schedule?: ScheduleOutput }
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { GEMINI_TOOLS, executeTool } from "@/lib/ai-tools";
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_TOOL_ROUNDS = 20;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface GeminiPart {
   text?: string;
-  functionCall?: {
-    name: string;
-    args: Record<string, unknown>;
-  };
-  functionResponse?: {
-    name: string;
-    response: unknown;
-  };
+  functionCall?: { name: string; args: Record<string, unknown> };
+  functionResponse?: { name: string; response: unknown };
 }
 
 interface GeminiMessage {
@@ -45,100 +22,102 @@ interface GeminiMessage {
 
 interface GeminiResponse {
   candidates?: Array<{
-    content: {
-      role: string;
-      parts: GeminiPart[];
-    };
+    content: { role: string; parts: GeminiPart[] };
     finishReason?: string;
   }>;
-  error?: {
-    code: number;
-    message: string;
-    status: string;
-  };
+  error?: { code: number; message: string; status: string };
 }
-
-// ─── System Prompt ────────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `You are GradAI, an expert academic planning assistant for University of Michigan students.
 
-Your job is to help students plan their course schedules and degree progress. You have access to 
-the UMich course catalog, program requirements, student transcripts, and a schedule builder via tools.
+You have access to the UMich course catalog, program requirements, student transcripts, and a schedule builder via tools.
 
 Core guidelines:
 - Always fetch the student profile first before making recommendations
-- Be specific: cite actual course codes, credit counts, and requirement block names  
-- Consider workload percent when recommending course loads (14-16 credits is typical)
+- Be specific: cite actual course codes, credit counts, and requirement block names
 - Term code 2570 = Winter 2026, Term code 2610 = Fall 2026
+
+━━━ PROGRAM NAME RULE (CRITICAL) ━━━
+
+You MUST pass program_name to build_schedule on EVERY call without exception — including 
+modifications. Never omit it. If the student said "Computer Science" or "CS Engineering" 
+or similar, always pass "Computer Science Engineering" as program_name.
 
 ━━━ SCHEDULE BUILDING (single semester) ━━━
 
-When a student asks for their schedule for a specific upcoming semester:
+When a student asks for a schedule:
 
-Step 1 — Call get_student_profile to understand their completed courses and enrolled programs.
+Step 1 — Call get_student_profile.
 
-Step 2 — If the student hasn't mentioned preferences, ask them ONE time:
-  "Before I build your schedule, do you have any preferences?
-   - Avoid early morning classes (before 10am)?
+Step 2 — If no preferences mentioned, ask ONCE:
+  "Before I build your schedule, any preferences?
+   - Avoid early mornings (before 10am)?
    - Keep Fridays free?
    - Target credit hours? (default: 15)
-   - Maximum workload per course? (default: no limit)"
-  
-  If they say "no preferences" or "just build it" or similar, proceed with defaults immediately.
+   - Max workload per course?"
+  If they say "just build it" or similar, use defaults immediately.
 
-Step 3 — Call build_schedule with the appropriate parameters.
+Step 3 — Call build_schedule with:
+  - user_id, term, program_name (ALWAYS required)
+  - target_credits, avoid_mornings, free_fridays as specified
 
 ━━━ MODIFYING AN EXISTING SCHEDULE ━━━
 
-If the student already has a schedule (you can see a previous build_schedule call in the 
-conversation history) and asks to modify it, you MUST follow these rules:
+When the student asks to change a schedule, you MUST:
 
-RULE 1 — NEVER rebuild from scratch. Always preserve what exists.
+1. ALWAYS include program_name (same as the original build).
+2. Extract ALL course codes from the most recent schedule in conversation history.
+3. Pass them as pinned_courses to keep the schedule intact.
+4. Apply only the specific change:
 
-RULE 2 — Extract ALL course codes from the most recent build_schedule result in the 
-conversation and pass them as pinned_courses. This locks those courses in place.
+   "move EECS 281 lab off Friday"
+   → pinned_courses: [all current courses]
+   → excluded_days_for_courses: '{"EECS 281": ["Fr"]}'
 
-RULE 3 — Apply only the specific change requested:
-  - "move TCHNCLCM 300 off Friday"
-    → pinned_courses: [all current courses including TCHNCLCM 300]
-    → excluded_days_for_courses: { "TCHNCLCM 300": ["Fr"] }
-  
-  - "remove PHYSICS 240 from the schedule"
-    → pinned_courses: [all current courses EXCEPT PHYSICS 240]
-  
-  - "add a LING class" or "include a linguistics course"
-    → First call search_courses with department: "LING" to find an available course code
-    → Then call build_schedule with:
-       pinned_courses: [all current courses]
-       required_courses: ["LING 111"] (or whichever code you found)
-       Adjust target_credits up to accommodate the new course
-  
-  - "swap out EECS 376 for something else"
-    → pinned_courses: [all current courses EXCEPT EECS 376]
-    → Gemini will fill the credit gap with the next best option
+   "remove PHYSICS 240, add a LING class"
+   → Call search_courses with department "LING" first to find a code
+   → pinned_courses: [all courses EXCEPT PHYSICS 240]
+   → required_courses: ["LING 209"] (or whatever you found)
 
-RULE 4 — CREDIT HOURS: 
-  If the student specifies a range (e.g. "between 15 and 17 credits"), set target_credits 
-  to the midpoint (16). Never let retries cause the total to drift outside that range.
-  The pinned_courses credits count toward the total — set target_credits accordingly.
+   "swap out EECS 376"
+   → pinned_courses: [all courses EXCEPT EECS 376]
 
-RULE 5 — SPECIFIC COURSE REQUESTS:
-  If the student asks for a specific department or course type (e.g. "a LING class", 
-  "a writing course", "MATH 217"), always call search_courses FIRST to find the exact 
-  course code before calling build_schedule. Never guess course codes.
+   "keep Mondays free" / "no classes before 9am" / toggle any preference
+   → pinned_courses: [ALL current courses]
+   → Update the relevant preference flag (avoid_mornings, free_fridays)
+   → Keep target_credits the same as current schedule
 
-━━━ GRADUATION PLANNING (multi-semester) ━━━
+5. NEVER rebuild from scratch. NEVER omit pinned_courses when modifying.
+6. If build_schedule returns a program-not-found error, retry with a slightly 
+   different program_name spelling (e.g. "Computer Science" vs "Computer Science Engineering").
 
-When a student asks about remaining semesters or graduation timeline:
-- Use get_student_profile and check_requirements first
-- Use get_program_requirements to understand remaining courses
-- Verify availability using get_course where possible
-- Output a gradplan-json block after your explanation in this exact format:
+━━━ CREDIT HOURS ━━━
+
+If the student gives a range (e.g. "15 to 17 credits"), use the midpoint (16).
+When modifying, compute target_credits as the sum of pinned_courses credits 
+plus any new required_courses credits.
+
+━━━ ADDING A SPECIFIC DEPARTMENT/COURSE ━━━
+
+If the student says "add a LING class" or "I want a writing course":
+1. Call search_courses with the relevant department first.
+2. Pick the best available option.
+3. Pass it in required_courses.
+Never guess course codes.
+
+━━━ GRADUATION PLANNING ━━━
+
+When a student asks about graduation timeline or remaining semesters:
+1. Call get_student_profile
+2. Call check_requirements
+3. Call get_program_requirements if needed
+4. Write a clear explanation in markdown
+5. ALWAYS end with a gradplan-json block in EXACTLY this format — no extra fields, no deviations:
 
 \`\`\`gradplan-json
 {
   "expectedGraduation": "Winter 2028",
-  "totalCreditsRemaining": 88,
+  "totalCreditsRemaining": 48,
   "semesters": [
     {
       "label": "Fall 2026",
@@ -156,32 +135,26 @@ When a student asks about remaining semesters or graduation timeline:
 }
 \`\`\`
 
+The gradplan-json block is MANDATORY for any graduation planning response.
+Do not skip it. Do not add extra fields. Do not use a different tag name.
+
 ━━━ ALL OTHER RESPONSES ━━━
 
 Use normal markdown. No JSON blocks needed.`;
 
-// ─── Gemini API Call ──────────────────────────────────────────────────────────
-
 async function callGemini(messages: GeminiMessage[]): Promise<GeminiResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY is not set in environment variables.");
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      system_instruction: {
-        parts: [{ text: SYSTEM_PROMPT }],
-      },
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents: messages,
       tools: GEMINI_TOOLS,
-      tool_config: {
-        function_calling_config: { mode: "AUTO" },
-      },
-      generation_config: {
-        temperature: 0.4,
-        max_output_tokens: 8192,
-      },
+      tool_config: { function_calling_config: { mode: "AUTO" } },
+      generation_config: { temperature: 0.4, max_output_tokens: 8192 },
     }),
   });
 
@@ -192,8 +165,6 @@ async function callGemini(messages: GeminiMessage[]): Promise<GeminiResponse> {
   return data;
 }
 
-// ─── Route Handler ────────────────────────────────────────────────────────────
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
@@ -203,23 +174,15 @@ export async function POST(req: NextRequest) {
     };
 
     const { userId, message, history = [] } = body;
-
     if (!userId || !message) {
-      return NextResponse.json(
-        { error: "userId and message are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "userId and message are required" }, { status: 400 });
     }
 
     const messages: GeminiMessage[] = [
       ...history,
-      {
-        role: "user",
-        parts: [{ text: `[Student User ID: ${userId}]\n\n${message}` }],
-      },
+      { role: "user", parts: [{ text: `[Student User ID: ${userId}]\n\n${message}` }] },
     ];
 
-    // ── Agentic tool-calling loop ─────────────────────────────────────────────
     let rounds = 0;
     let scheduleData: unknown = null;
 
@@ -229,8 +192,7 @@ export async function POST(req: NextRequest) {
 
       const geminiResponse = await callGemini(messages);
       const candidate = geminiResponse.candidates?.[0];
-
-      if (!candidate) throw new Error("No response candidate returned from Gemini.");
+      if (!candidate) throw new Error("No response candidate from Gemini.");
 
       const { parts } = candidate.content;
       messages.push({ role: "model", parts });
@@ -238,7 +200,6 @@ export async function POST(req: NextRequest) {
       const functionCalls = parts.filter((p) => p.functionCall);
 
       if (functionCalls.length === 0) {
-        // No tool calls — extract text and return
         const textPart = parts.find((p) => p.text);
         const reply = textPart?.text ?? "I wasn't able to generate a response. Please try again.";
         return NextResponse.json({
@@ -247,48 +208,38 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Execute all tool calls in parallel
       const toolResults = await Promise.all(
         functionCalls.map(async (part) => {
           const { name, args } = part.functionCall!;
-          console.log(`[GradAI] Calling tool: ${name}`, JSON.stringify(args).slice(0, 200));
+          console.log(`[GradAI] Tool: ${name}`, JSON.stringify(args).slice(0, 200));
 
           let result: unknown;
           try {
             result = await executeTool(name, args);
-
-            // Capture schedule if build_schedule was called successfully
             if (
               name === "build_schedule" &&
-              typeof result === "object" &&
-              result !== null &&
+              typeof result === "object" && result !== null &&
               "schedule" in result &&
               (result as { success?: boolean }).success
             ) {
               scheduleData = (result as { schedule: unknown }).schedule;
             }
           } catch (err) {
-            result = {
-              error: `Tool execution failed: ${err instanceof Error ? err.message : String(err)}`,
-            };
+            result = { error: `Tool failed: ${err instanceof Error ? err.message : String(err)}` };
           }
 
-          return {
-            functionResponse: { name, response: result },
-          } satisfies GeminiPart;
+          return { functionResponse: { name, response: result } } satisfies GeminiPart;
         })
       );
 
-      // Send tool results back to Gemini
       messages.push({ role: "user", parts: toolResults });
     }
 
-    // Safety cap hit
-    const lastModelTurn = [...messages].reverse().find((m) => m.role === "model");
-    const fallbackText = lastModelTurn?.parts.find((p) => p.text)?.text;
+    const lastModel = [...messages].reverse().find((m) => m.role === "model");
+    const fallback = lastModel?.parts.find((p) => p.text)?.text;
 
     return NextResponse.json({
-      reply: fallbackText ?? "I'm having trouble completing this request. Please try with a more specific question.",
+      reply: fallback ?? "I'm having trouble completing this. Please try again.",
       ...(scheduleData ? { schedule: scheduleData } : {}),
     });
   } catch (error) {

@@ -1,40 +1,9 @@
 /**
  * app/api/schedule/route.ts
- *
- * POST /api/schedule
- *
- * Smart schedule builder inspired by the Python backtracking scheduler.
- * Pipeline:
- *   1. Load student profile + program requirements from MongoDB
- *   2. Pre-filter catalog by urgency (score requirement blocks, find needed courses)
- *   3. Ask Gemini to select which courses to take (no scheduling logic)
- *   4. Python-style backtracking scheduler picks conflict-free sections
- *   5. Shelf/retry loop if no valid schedule found
- *   6. Return ScheduleOutput for the WeeklyCalendar component
- *
- * Request body:
- *   {
- *     userId: string,
- *     term: "2570" | "2610",
- *     targetCredits?: number,
- *     pinnedCourses?: string[],
- *     requiredCourses?: string[],
- *     excludedDaysForCourses?: Record<string, string[]>,
- *     preferences?: {
- *       avoidMornings?: boolean,
- *       freeFridays?: boolean,
- *       maxWorkloadPercent?: number,
- *     }
- *   }
- *
- * Response:
- *   { schedule: ScheduleOutput }
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { MongoClient, ObjectId } from "mongodb";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ScheduledMeeting {
   days: string[];
@@ -70,7 +39,7 @@ interface TimeBlock {
   days: Set<string>;
   startMin: number;
   endMin: number;
-  courseCode?: string; // if set, this block only applies to this specific course
+  courseCode?: string;
 }
 
 interface SectionCombo {
@@ -95,6 +64,46 @@ interface RawMeeting {
   Times?: string;
   location?: string;
   Location?: string;
+}
+
+interface RequirementBlock {
+  blockName?: string;
+  block_name?: string;
+  creditsRequired?: number;
+  credits_required_for_block?: number;
+  coursesRequired?: number;
+  courses_required_for_block?: number;
+  mandatoryCourses?: string[];
+  mandatory_courses?: string[];
+  electiveOptions?: string[];
+  elective_options?: string[];
+  rules?: string;
+}
+
+interface ScoredBlock {
+  blockName: string;
+  urgency: number;
+  creditsRequired: number;
+  mandatory: string[];
+  electives: string[];
+}
+
+interface CourseToSchedule {
+  code: string;
+  title: string;
+  credits: number;
+  workload: string;
+  combos: SectionCombo[];
+}
+
+interface ScheduleEntry {
+  code: string;
+  title: string;
+  credits: number;
+  workload: string;
+  lecture: RawSection;
+  linked: RawSection[];
+  timeBlocks: TimeBlock[];
 }
 
 // ─── MongoDB ──────────────────────────────────────────────────────────────────
@@ -139,7 +148,7 @@ function expandDays(daysStr: string): string[] {
   if (!daysStr || daysStr === "TBA") return [];
   if (DAY_EXPAND[daysStr]) return DAY_EXPAND[daysStr];
   const chunks = daysStr.match(/.{1,2}/g) ?? [];
-  return chunks.filter((d) => ["Mo","Tu","We","Th","Fr","Sa"].includes(d));
+  return chunks.filter((d) => ["Mo", "Tu", "We", "Th", "Fr", "Sa"].includes(d));
 }
 
 function parseTimeToMinutes(timeStr: string): { start: number; end: number } | null {
@@ -161,7 +170,6 @@ function minutesToTimeStr(minutes: number): string {
 }
 
 function blocksOverlap(a: TimeBlock, b: TimeBlock, courseCode?: string): boolean {
-  // If a block is course-specific, only apply it to that course
   if (a.courseCode && a.courseCode !== courseCode) return false;
   if (b.courseCode && b.courseCode !== courseCode) return false;
   const sharedDays = [...a.days].some((d) => b.days.has(d));
@@ -177,12 +185,7 @@ function sectionToTimeBlocks(section: RawSection, label: string): TimeBlock[] {
     const days = expandDays(daysStr);
     const parsed = timesStr ? parseTimeToMinutes(timesStr) : null;
     if (days.length > 0 && parsed) {
-      blocks.push({
-        label,
-        days: new Set(days),
-        startMin: parsed.start,
-        endMin: parsed.end,
-      });
+      blocks.push({ label, days: new Set(days), startMin: parsed.start, endMin: parsed.end });
     }
   }
   return blocks;
@@ -196,24 +199,13 @@ function buildPreferenceBlocks(
   const weekdays = new Set(["Mo", "Tu", "We", "Th", "Fr"]);
 
   if (prefs.avoidMornings) {
-    blocks.push({
-      label: "[PREF] No mornings",
-      days: weekdays,
-      startMin: 0,
-      endMin: 10 * 60,
-    });
+    blocks.push({ label: "[PREF] No mornings", days: weekdays, startMin: 0, endMin: 10 * 60 });
   }
 
   if (prefs.freeFridays) {
-    blocks.push({
-      label: "[PREF] Free Fridays",
-      days: new Set(["Fr"]),
-      startMin: 0,
-      endMin: 24 * 60,
-    });
+    blocks.push({ label: "[PREF] Free Fridays", days: new Set(["Fr"]), startMin: 0, endMin: 24 * 60 });
   }
 
-  // Per-course day exclusions (e.g. "move TCHNCLCM 300 off Friday")
   for (const [courseCode, days] of Object.entries(excludedDaysForCourses)) {
     for (const day of days) {
       blocks.push({
@@ -229,13 +221,12 @@ function buildPreferenceBlocks(
   return blocks;
 }
 
-// ─── Section Family Grouping ──────────────────────────────────────────────────
+// ─── Section Grouping ─────────────────────────────────────────────────────────
 
 function groupSectionsByFamily(sections: RawSection[]): SectionCombo[] {
   const open = sections.filter(
     (s) => s.Status === "Open" || s.EnrollmentStatus === "open"
   );
-
   const lectures = open.filter((s) => s.SectionType === "LEC");
   const linked = open.filter((s) => s.SectionType !== "LEC");
 
@@ -270,9 +261,7 @@ function groupSectionsByFamily(sections: RawSection[]): SectionCombo[] {
     lecLinked[match].push(s);
   }
 
-  return Object.keys(lecByNum)
-    .sort()
-    .map((k) => ({ lecture: lecByNum[k], linked: lecLinked[k] }));
+  return Object.keys(lecByNum).sort().map((k) => ({ lecture: lecByNum[k], linked: lecLinked[k] }));
 }
 
 function buildSectionCombos(family: SectionCombo): SectionCombo[] {
@@ -290,9 +279,7 @@ function buildSectionCombos(family: SectionCombo): SectionCombo[] {
   for (const typeList of typeLists) {
     const newCombos: RawSection[][] = [];
     for (const existing of combos) {
-      for (const s of typeList) {
-        newCombos.push([...existing, s]);
-      }
+      for (const s of typeList) newCombos.push([...existing, s]);
     }
     combos = newCombos;
   }
@@ -301,21 +288,6 @@ function buildSectionCombos(family: SectionCombo): SectionCombo[] {
 }
 
 // ─── Urgency Scoring ──────────────────────────────────────────────────────────
-
-interface RequirementBlock {
-  blockName?: string;
-  block_name?: string;
-  creditsRequired?: number;
-  credits_required_for_block?: number;
-  coursesRequired?: number;
-  courses_required_for_block?: number;
-  mandatoryCourses?: string[];
-  mandatory_courses?: string[];
-  electiveOptions?: string[];
-  elective_options?: string[];
-  rules?: string;
-  rules_and_restrictions?: string;
-}
 
 function scoreBlockUrgency(block: RequirementBlock, completed: Set<string>): number {
   const mandatory = (block.mandatoryCourses ?? block.mandatory_courses ?? []).filter(
@@ -330,22 +302,10 @@ function scoreBlockUrgency(block: RequirementBlock, completed: Set<string>): num
   const mandatoryRatio = mandatory.length / total;
   const coursesRequired = block.coursesRequired ?? block.courses_required_for_block ?? 0;
   const choicePressure =
-    coursesRequired > 0
-      ? Math.min(coursesRequired / total, 1.0)
-      : electives.length === 0
-      ? 1.0
-      : 0.3;
+    coursesRequired > 0 ? Math.min(coursesRequired / total, 1.0) : electives.length === 0 ? 1.0 : 0.3;
   const completionGap = Math.min(mandatory.length / Math.max(total, 1), 1.0);
 
   return Math.round((mandatoryRatio * 0.5 + choicePressure * 0.3 + completionGap * 0.2) * 1000) / 1000;
-}
-
-interface ScoredBlock {
-  blockName: string;
-  urgency: number;
-  creditsRequired: number;
-  mandatory: string[];
-  electives: string[];
 }
 
 function scoreAllBlocks(blocks: RequirementBlock[], completed: Set<string>): ScoredBlock[] {
@@ -354,12 +314,8 @@ function scoreAllBlocks(blocks: RequirementBlock[], completed: Set<string>): Sco
       blockName: b.blockName ?? b.block_name ?? "Unknown",
       urgency: scoreBlockUrgency(b, completed),
       creditsRequired: b.creditsRequired ?? b.credits_required_for_block ?? 0,
-      mandatory: (b.mandatoryCourses ?? b.mandatory_courses ?? []).filter(
-        (c) => !completed.has(c)
-      ),
-      electives: (b.electiveOptions ?? b.elective_options ?? []).filter(
-        (c) => !completed.has(c)
-      ),
+      mandatory: (b.mandatoryCourses ?? b.mandatory_courses ?? []).filter((c) => !completed.has(c)),
+      electives: (b.electiveOptions ?? b.elective_options ?? []).filter((c) => !completed.has(c)),
     }))
     .filter((b) => b.urgency > 0)
     .sort((a, b) => b.urgency - a.urgency);
@@ -371,18 +327,17 @@ const SELECTION_SYSTEM = `You are an Academic Requirements Advisor for the Unive
 Your ONLY job is to select which courses the student should take this term.
 A separate algorithm handles time conflicts — ignore scheduling entirely.
 
-PREREQUISITE RULE (most important):
+PREREQUISITE RULE:
 Every course has a "prereq_enforced" field. You MUST verify the student satisfies it.
-- Cross-reference against completed_courses before selecting any course.
-- Courses being selected THIS term do NOT count as completed.
-- If prereq_enforced is "N/A" or empty, select freely.
+Cross-reference against completed_courses. Courses selected THIS term do not count as completed.
+If prereq_enforced is "N/A" or empty, select freely.
 
-FORCED COURSES RULE (second most important):
+FORCED COURSES RULE:
 The "forced_courses" list contains courses that MUST appear in your selections.
-- Include every course in forced_courses as long as it exists in candidate_courses and its prerequisites are satisfied.
-- If a forced course is shelved or unavailable, note it in "notes" but do not fail.
-- Adjust other selections to hit target_credits AFTER locking in forced courses.
-- Do NOT replace or omit forced courses under any circumstances.
+Include every course in forced_courses as long as it exists in candidate_courses and prereqs are satisfied.
+If a forced course is shelved or unavailable, note it but do not fail.
+Adjust other selections to hit target_credits AFTER locking in forced courses.
+Do NOT replace or omit forced courses.
 
 SELECTION PRIORITY:
 1. forced_courses (always include if available)
@@ -413,17 +368,20 @@ async function geminiSelectCourses(params: {
   majorName: string;
   scoredBlocks: ScoredBlock[];
   candidateCourses: Record<string, {
-    title: string;
-    credits: number;
-    workload: string;
-    prereq_enforced: string;
-    prereq_advisory?: string;
+    title: string; credits: number; workload: string;
+    prereq_enforced: string; prereq_advisory?: string;
   }>;
   shelved: string[];
   replaceCode?: string;
   previousSelections?: string[];
   forcedCourses?: string[];
-}): Promise<{ selections: { course_code: string; credits: number; workload_percent: number; course_title: string; requirement_block: string }[]; notes: string }> {
+}): Promise<{
+  selections: {
+    course_code: string; credits: number; workload_percent: number;
+    course_title: string; requirement_block: string;
+  }[];
+  notes: string;
+}> {
   const apiKey = process.env.GEMINI_API_KEY!;
 
   const prompt = {
@@ -444,15 +402,11 @@ async function geminiSelectCourses(params: {
     })),
     candidate_courses: params.candidateCourses,
     shelved_courses: params.shelved,
-    ...(params.replaceCode
-      ? {
-          replace_course: params.replaceCode,
-          instruction: `The course "${params.replaceCode}" has no valid sections that fit time constraints. Remove it and replace with one alternative that satisfies a similar requirement. Do NOT remove any forced_courses.`,
-        }
-      : {}),
-    ...(params.previousSelections?.length
-      ? { avoid_these_exact_sets: params.previousSelections }
-      : {}),
+    ...(params.replaceCode ? {
+      replace_course: params.replaceCode,
+      instruction: `"${params.replaceCode}" has no valid sections. Replace it with an alternative. Do NOT remove any forced_courses.`,
+    } : {}),
+    ...(params.previousSelections?.length ? { avoid_these_exact_sets: params.previousSelections } : {}),
   };
 
   const resp = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
@@ -472,24 +426,6 @@ async function geminiSelectCourses(params: {
 
 // ─── Backtracking Scheduler ───────────────────────────────────────────────────
 
-interface CourseToSchedule {
-  code: string;
-  title: string;
-  credits: number;
-  workload: string;
-  combos: SectionCombo[];
-}
-
-interface ScheduleEntry {
-  code: string;
-  title: string;
-  credits: number;
-  workload: string;
-  lecture: RawSection;
-  linked: RawSection[];
-  timeBlocks: TimeBlock[];
-}
-
 function findValidSchedule(
   courses: CourseToSchedule[],
   prefBlocks: TimeBlock[]
@@ -502,7 +438,6 @@ function findValidSchedule(
       for (const ob of occupied) {
         if (blocksOverlap(nb, ob, courseCode)) return `${nb.label} vs ${ob.label}`;
       }
-      // Also check course-specific preference blocks
       for (const pb of prefBlocks) {
         if (pb.courseCode === courseCode && blocksOverlap(nb, pb, courseCode)) {
           return `${nb.label} vs ${pb.label}`;
@@ -519,21 +454,16 @@ function findValidSchedule(
     for (const combo of course.combos) {
       const newBlocks: TimeBlock[] = [];
       for (const sec of [combo.lecture, ...combo.linked]) {
-        newBlocks.push(...sectionToTimeBlocks(sec, `${course.code}`));
+        newBlocks.push(...sectionToTimeBlocks(sec, course.code));
       }
 
       if (newBlocks.length === 0 && course.combos.length > 1) continue;
-
       if (firstConflict(newBlocks, course.code)) continue;
 
       occupied.push(...newBlocks);
       chosen.push({
-        code: course.code,
-        title: course.title,
-        credits: course.credits,
-        workload: course.workload,
-        lecture: combo.lecture,
-        linked: combo.linked,
+        code: course.code, title: course.title, credits: course.credits,
+        workload: course.workload, lecture: combo.lecture, linked: combo.linked,
         timeBlocks: newBlocks,
       });
 
@@ -547,19 +477,18 @@ function findValidSchedule(
   }
 
   const success = backtrack(0);
-
   if (success) return { success: true, schedule: chosen };
 
   const globalPrefBlocks = prefBlocks.filter((b) => !b.courseCode);
   const stuck = courses
     .filter((course) => {
+      const coursePrefBlocks = prefBlocks.filter((b) => b.courseCode === course.code);
+      const allPrefBlocks = [...globalPrefBlocks, ...coursePrefBlocks];
       return !course.combos.some((combo) => {
         const blocks: TimeBlock[] = [];
         for (const sec of [combo.lecture, ...combo.linked]) {
           blocks.push(...sectionToTimeBlocks(sec, course.code));
         }
-        const coursePrefBlocks = prefBlocks.filter((b) => b.courseCode === course.code);
-        const allPrefBlocks = [...globalPrefBlocks, ...coursePrefBlocks];
         return !allPrefBlocks.some((pb) => blocks.some((b) => blocksOverlap(b, pb, course.code)));
       });
     })
@@ -573,8 +502,7 @@ function findValidSchedule(
 export async function POST(req: NextRequest) {
   try {
     const {
-      userId,
-      term,
+      userId, term,
       targetCredits = 15,
       preferences = {},
       programName,
@@ -603,10 +531,13 @@ export async function POST(req: NextRequest) {
     const db = await getDb();
     const maxWorkload = preferences.maxWorkloadPercent ?? 100;
 
-    // ── 1. Load student profile ───────────────────────────────────────────────
+    // ── 1. Load student ───────────────────────────────────────────────────────
     const student = await db.collection("students").findOne({ userId });
     if (!student) {
-      return NextResponse.json({ error: "Student profile not found. Please upload your transcript first." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Student profile not found. Please upload your transcript first." },
+        { status: 404 }
+      );
     }
 
     const completedCodes: string[] = (student.transcript ?? []).map(
@@ -614,12 +545,14 @@ export async function POST(req: NextRequest) {
     );
     const completedSet = new Set(completedCodes);
 
-    // ── 2. Load enrolled programs ─────────────────────────────────────────────
+    // ── 2. Load programs — with multiple fallbacks ────────────────────────────
     const programIds = (student.enrolledPrograms ?? []).map(
       (id: string) => new ObjectId(id)
     );
 
     let programs: { programName: string; requirementBlocks: RequirementBlock[] }[] = [];
+
+    // Fallback 1: enrolled program IDs
     if (programIds.length > 0) {
       programs = await db
         .collection("programs")
@@ -627,6 +560,7 @@ export async function POST(req: NextRequest) {
         .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
     }
 
+    // Fallback 2: exact programName match
     if (programs.length === 0 && programName) {
       programs = await db
         .collection("programs")
@@ -634,60 +568,87 @@ export async function POST(req: NextRequest) {
         .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
     }
 
+    // Fallback 3: try common aliases if still not found
+    if (programs.length === 0 && programName) {
+      const aliases: Record<string, string[]> = {
+        "computer science": ["Computer Science Engineering", "Computer Science", "CS-Eng"],
+        "cs": ["Computer Science Engineering", "Computer Science"],
+        "eecs": ["Computer Science Engineering", "Electrical Engineering"],
+        "electrical": ["Electrical Engineering", "Computer Science Engineering"],
+        "mechanical": ["Mechanical Engineering"],
+        "civil": ["Civil Engineering"],
+        "chemical": ["Chemical Engineering"],
+      };
+      const lower = programName.toLowerCase();
+      const tryNames = Object.entries(aliases)
+        .filter(([key]) => lower.includes(key))
+        .flatMap(([, vals]) => vals);
+
+      for (const tryName of tryNames) {
+        programs = await db
+          .collection("programs")
+          .find({ programName: { $regex: tryName, $options: "i" } })
+          .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
+        if (programs.length > 0) break;
+      }
+    }
+
+    // Fallback 4: if pinned courses exist, find any program that contains them
+    if (programs.length === 0 && pinnedCourses.length > 0) {
+      programs = await db
+        .collection("programs")
+        .find({
+          $or: [
+            { "requirementBlocks.mandatoryCourses": { $in: pinnedCourses } },
+            { "requirementBlocks.electiveOptions": { $in: pinnedCourses } },
+          ],
+        })
+        .limit(1)
+        .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
+    }
+
     if (programs.length === 0) {
       return NextResponse.json({
-        error: "No program found. Please tell me your major (e.g. 'Computer Science Engineering') so I can look up the requirements.",
+        error:
+          "No program found. Please tell me your major (e.g. 'Computer Science Engineering') so I can look up the requirements.",
       }, { status: 400 });
     }
 
-    const allBlocks: RequirementBlock[] = programs.flatMap(
-      (p) => p.requirementBlocks ?? []
-    );
+    const allBlocks: RequirementBlock[] = programs.flatMap((p) => p.requirementBlocks ?? []);
     const majorName = programs.map((p) => p.programName).join(" + ");
 
-    // ── 3. Score and rank requirement blocks ──────────────────────────────────
+    // ── 3. Score blocks ───────────────────────────────────────────────────────
     const scoredBlocks = scoreAllBlocks(allBlocks, completedSet);
 
-    // Collect all needed course codes (urgency-based + pinned + required)
     const neededCodes = new Set<string>();
     for (const block of scoredBlocks) {
       block.mandatory.forEach((c) => neededCodes.add(c));
       block.electives.forEach((c) => neededCodes.add(c));
     }
-    // Always include pinned and required courses in catalog fetch
     pinnedCourses.forEach((c) => neededCodes.add(c));
     requiredCourses.forEach((c) => neededCodes.add(c));
 
-    // ── 4. Load catalog for this term ─────────────────────────────────────────
+    // ── 4. Load catalog ───────────────────────────────────────────────────────
     const catalogDocs = await db
       .collection("courses")
-      .find({
-        courseId: { $in: [...neededCodes] },
-        term,
-      })
+      .find({ courseId: { $in: [...neededCodes] }, term })
       .toArray();
 
     const catalogMap: Record<string, typeof catalogDocs[0]> = {};
-    for (const doc of catalogDocs) {
-      catalogMap[doc.courseId] = doc;
-    }
+    for (const doc of catalogDocs) catalogMap[doc.courseId] = doc;
 
-    // ── 5. Build candidate courses for Gemini ─────────────────────────────────
+    // ── 5. Build candidate courses ────────────────────────────────────────────
     const candidateCourses: Record<string, {
-      title: string;
-      credits: number;
-      workload: string;
-      prereq_enforced: string;
-      prereq_advisory?: string;
+      title: string; credits: number; workload: string;
+      prereq_enforced: string; prereq_advisory?: string;
     }> = {};
 
     for (const code of neededCodes) {
       const doc = catalogMap[code];
       if (!doc) continue;
 
-      const wl = parseFloat(doc.workload ?? "0");
-      // Don't filter pinned/required courses by workload
       const isPinned = pinnedCourses.includes(code) || requiredCourses.includes(code);
+      const wl = parseFloat(doc.workload ?? "0");
       if (!isPinned && !isNaN(wl) && wl > maxWorkload) continue;
 
       const openSections = (doc.sections ?? []).filter(
@@ -708,17 +669,15 @@ export async function POST(req: NextRequest) {
 
     if (Object.keys(candidateCourses).length === 0) {
       return NextResponse.json({
-        error: `No courses found in the catalog for term ${term}. Make sure the catalog for this term is seeded.`,
+        error: `No courses found in the catalog for term ${term}.`,
       }, { status: 404 });
     }
 
-    // ── 6. Build preference + per-course exclusion time blocks ────────────────
+    // ── 6. Preference blocks ──────────────────────────────────────────────────
     const prefBlocks = buildPreferenceBlocks(preferences, excludedDaysForCourses);
-
-    // ── 7. Merge pinned + required into forced set ────────────────────────────
     const forcedCourses = [...new Set([...pinnedCourses, ...requiredCourses])];
 
-    // ── 8. Shelf/retry loop ───────────────────────────────────────────────────
+    // ── 7. Shelf/retry loop ───────────────────────────────────────────────────
     const shelved: string[] = [];
     const prevSelectionSets: string[] = [];
     let toReplace: string | undefined;
@@ -743,16 +702,10 @@ export async function POST(req: NextRequest) {
       });
 
       const selections = aiResult.selections ?? [];
-      if (selections.length === 0) {
-        console.log("[/api/schedule] Gemini returned no selections");
-        break;
-      }
+      if (selections.length === 0) { console.log("[/api/schedule] No selections"); break; }
 
       const selectionKey = selections.map((s) => s.course_code).sort().join(",");
-      if (prevSelectionSets.includes(selectionKey)) {
-        console.log("[/api/schedule] Gemini repeated a previous selection set");
-        break;
-      }
+      if (prevSelectionSets.includes(selectionKey)) { console.log("[/api/schedule] Repeated set"); break; }
       prevSelectionSets.push(selectionKey);
 
       const coursesToSchedule: CourseToSchedule[] = [];
@@ -761,20 +714,15 @@ export async function POST(req: NextRequest) {
         if (!doc) continue;
 
         const rawSections: RawSection[] = (doc.sections ?? []).map((s: {
-          sectionType?: string;
-          sectionNumber?: string | number;
-          instructors?: string[];
+          sectionType?: string; sectionNumber?: string | number; instructors?: string[];
           meetings?: { days?: string; times?: string; location?: string }[];
-          enrollmentStatus?: string;
-          availableSeats?: number;
+          enrollmentStatus?: string; availableSeats?: number;
         }) => ({
           SectionNumber: s.sectionNumber ?? "001",
           SectionType: s.sectionType ?? "LEC",
           Instructors: s.instructors ?? [],
           Meetings: (s.meetings ?? []).map((m) => ({
-            Days: m.days ?? "",
-            Times: m.times ?? "",
-            Location: m.location ?? "TBA",
+            Days: m.days ?? "", Times: m.times ?? "", Location: m.location ?? "TBA",
           })),
           Status: s.enrollmentStatus === "open" ? "Open" : "Closed",
           EnrollmentStatus: s.enrollmentStatus,
@@ -783,16 +731,12 @@ export async function POST(req: NextRequest) {
 
         const families = groupSectionsByFamily(rawSections);
         const allCombos: SectionCombo[] = [];
-        for (const fam of families) {
-          allCombos.push(...buildSectionCombos(fam));
-        }
+        for (const fam of families) allCombos.push(...buildSectionCombos(fam));
 
         if (allCombos.length > 0) {
           coursesToSchedule.push({
-            code: sel.course_code,
-            title: sel.course_title,
-            credits: sel.credits,
-            workload: String(sel.workload_percent ?? "N/A"),
+            code: sel.course_code, title: sel.course_title,
+            credits: sel.credits, workload: String(sel.workload_percent ?? "N/A"),
             combos: allCombos,
           });
         }
@@ -802,30 +746,29 @@ export async function POST(req: NextRequest) {
 
       if (result.success) {
         finalSchedule = result.schedule;
-        console.log(`[/api/schedule] Valid schedule found on attempt ${attempt}`);
+        console.log(`[/api/schedule] Valid schedule on attempt ${attempt}`);
         break;
       }
 
-      // Never shelve a pinned or required course
       const conflicts = result.conflicts.filter((c) => !forcedCourses.includes(c));
       const toShelve = conflicts[0];
       if (toShelve && !shelved.includes(toShelve)) {
-        console.log(`[/api/schedule] Shelving ${toShelve}, retrying...`);
+        console.log(`[/api/schedule] Shelving ${toShelve}`);
         shelved.push(toShelve);
         toReplace = toShelve;
       } else {
-        console.log("[/api/schedule] Cannot resolve conflicts, stopping");
+        console.log("[/api/schedule] Cannot resolve conflicts");
         break;
       }
     }
 
     if (!finalSchedule || finalSchedule.length === 0) {
       return NextResponse.json({
-        error: "Could not build a conflict-free schedule. Try adjusting your preferences or target credits.",
+        error: "Could not build a conflict-free schedule. Try adjusting preferences or target credits.",
       }, { status: 422 });
     }
 
-    // ── 9. Build ScheduleOutput ───────────────────────────────────────────────
+    // ── 8. Build output ───────────────────────────────────────────────────────
     const totalCredits = finalSchedule.reduce((sum, c) => sum + c.credits, 0);
 
     const courses: ScheduledCourse[] = finalSchedule.map((entry, idx) => {
@@ -834,10 +777,8 @@ export async function POST(req: NextRequest) {
       for (const sec of [entry.lecture, ...entry.linked]) {
         const meetings: ScheduledMeeting[] = (sec.Meetings ?? [])
           .map((m) => {
-            const daysStr = (m.Days ?? m.days ?? "");
-            const timesStr = (m.Times ?? m.times ?? "");
-            const days = expandDays(daysStr);
-            const parsed = timesStr ? parseTimeToMinutes(timesStr) : null;
+            const days = expandDays(m.Days ?? m.days ?? "");
+            const parsed = parseTimeToMinutes(m.Times ?? m.times ?? "");
             if (!parsed || days.length === 0) return null;
             return {
               days,
