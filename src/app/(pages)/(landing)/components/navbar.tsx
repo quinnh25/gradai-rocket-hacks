@@ -1,13 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
-// ⚠️ Make sure this path matches where you put your Better-Auth client file!
-import { authClient } from "@/lib/auth/client"; 
+import { authClient } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -15,8 +14,87 @@ const navLinks = [
   { label: "About", href: "/about" },
 ];
 
+function NavProfileBadge() {
+  const { data: session } = authClient.useSession();
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  async function handleLogout() {
+    await authClient.signOut();
+    router.refresh();
+    setOpen(false);
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+        >
+          Log in
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+        >
+          Get Started
+        </Button>
+      </div>
+    );
+  }
+
+  const user = session.user;
+
+  return (
+    <div className="flex flex-col items-center">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 bg-green-500/20 border border-green-500 text-green-700 px-4 py-2 rounded-full hover:bg-green-500/30 transition-colors"
+      >
+        {user.image ? (
+          <img src={user.image} alt="Profile" className="w-6 h-6 rounded-full object-cover" />
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-green-200 flex items-center justify-center text-green-700 text-xs font-bold">
+            {user.name?.[0] ?? "?"}
+          </div>
+        )}
+        <span className="text-sm font-medium">{user.email}</span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="absolute top-16 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50"
+          >
+            <Link
+              href="/dashboard"
+              onClick={() => setOpen(false)}
+              className="block w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+            >
+              Go to Dashboard
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium border-t border-border"
+            >
+              Log out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = authClient.useSession();
 
   return (
     <motion.nav
@@ -51,21 +129,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* DESKTOP BUTTONS */}
-          <div className="hidden items-center gap-2 md:flex">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
-            >
-              Log in
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
-            >
-              Get Started
-            </Button>
+          {/* DESKTOP — session-aware */}
+          <div className="hidden md:flex relative">
+            <NavProfileBadge />
           </div>
 
           <button
@@ -94,22 +160,41 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              
-              {/* MOBILE BUTTONS */}
+
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
-                >
-                  Log in
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
-                >
-                  Get Started
-                </Button>
+                {session?.user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileOpen(false)}
+                      className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors font-medium"
+                    >
+                      Go to Dashboard
+                    </Link>
+                    <button
+                      onClick={() => authClient.signOut()}
+                      className="rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium text-left"
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+                    >
+                      Log in
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+                    >
+                      Get Started
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

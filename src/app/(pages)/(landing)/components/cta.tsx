@@ -2,9 +2,9 @@
 
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, GraduationCap } from "lucide-react";
-import Link from "next/link";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth/client";
 
 export default function CTA() {
   const ref = useRef(null);
@@ -29,22 +29,13 @@ export default function CTA() {
               </defs>
               <rect width="100%" height="100%" fill="url(#cta-dots)" />
             </svg>
-
             <motion.div
-              animate={{
-                x: [0, 40, 0],
-                y: [0, -30, 0],
-                scale: [1, 1.2, 1],
-              }}
+              animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
               transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-[80px]"
             />
             <motion.div
-              animate={{
-                x: [0, -30, 0],
-                y: [0, 20, 0],
-                scale: [1.1, 1, 1.1],
-              }}
+              animate={{ x: [0, -30, 0], y: [0, 20, 0], scale: [1.1, 1, 1.1] }}
               transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 4 }}
               className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-accent/20 blur-[60px]"
             />
@@ -90,11 +81,13 @@ export default function CTA() {
               transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.4 }}
               className="mt-6 sm:mt-0"
             >
-              <Button size="lg" asChild className="group px-8 text-sm">
-                <Link href="/dashboard">
-                  Get Started Free
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                </Link>
+              <Button
+                size="lg"
+                className="group px-8 text-sm"
+                onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+              >
+                Get Started Free
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </motion.div>
           </div>
