@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import ProfileBadge from "./profile-badge";
 import TranscriptUpload from "./TranscriptUpload";
 import ChatPlanner from "./ChatPlanner";
+import ScheduleBuilder from "./ScheduleBuilder";
 
 export default async function Dashboard() {
   const session = await auth.api.getSession({
@@ -20,7 +21,7 @@ export default async function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <ProfileBadge email={user.email} image={user.image} name={user.name} />
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -31,25 +32,29 @@ export default async function Dashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 items-start">
-          {/* ── Left column: transcript upload ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
+          {/* ── Left column ── */}
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">
+            {/* Transcript */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
                 📄 Your Transcript
               </h2>
               <TranscriptUpload userId={user.id} />
             </div>
 
-            {/* Status card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
+            {/* Schedule Builder */}
+            <ScheduleBuilder userId={user.id} />
+
+            {/* Session info */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 🎓 Session
               </h2>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">Signed in as</span>
-                  <span className="font-medium text-gray-700 truncate max-w-[160px]">
+                  <span className="font-medium text-gray-700 truncate max-w-[160px] text-xs">
                     {user.email}
                   </span>
                 </div>
@@ -63,10 +68,12 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          {/* ── Right column: AI chat planner ── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-               style={{ height: "680px" }}>
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+          {/* ── Right column: AI chat ── */}
+          <div
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            style={{ height: "780px" }}
+          >
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
                 G
               </div>
@@ -77,7 +84,7 @@ export default async function Dashboard() {
                 </p>
               </div>
             </div>
-            <div style={{ height: "calc(680px - 65px)" }}>
+            <div style={{ height: "calc(780px - 65px)" }}>
               <ChatPlanner userId={user.id} />
             </div>
           </div>
