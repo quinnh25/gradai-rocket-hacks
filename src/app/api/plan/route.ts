@@ -104,7 +104,7 @@ Guidelines:
       },
       generation_config: {
         temperature: 0.4,   // Lower = more deterministic planning output
-        max_output_tokens: 16000,
+        max_output_tokens: 32000,
       },
     }),
   });
