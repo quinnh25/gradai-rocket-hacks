@@ -1,38 +1,67 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth"; // Make sure this path points to your actual auth.ts file
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  // 1. Check if the user is logged in
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // 2. If no session exists, kick them back to the home page immediately
+  if (!session) {
+    redirect("/");
+  }
+
+  // 3. We have a session! Extract the user data
+  const user = session.user;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
         
-        {/* Success Checkmark */}
-        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-          <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
+        {/* User Avatar (Google Profile Picture) or Success Checkmark */}
+        {user.image ? (
+          <img 
+            src={user.image} 
+            alt={`${user.name}'s profile picture`} 
+            className="mx-auto h-20 w-20 rounded-full border-4 border-green-100 mb-6 shadow-sm"
+          />
+        ) : (
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
 
+        {/* Personalized Welcome */}
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-          You made it in!
+          Welcome, {user.name?.split(' ')[0]}!
         </h1>
         
-        <p className="text-gray-500 mb-8">
-          The database is connected, Google OAuth is working, and your secure session is active.
+        <p className="text-gray-500 mb-2 font-medium">
+          {user.email}
+        </p>
+
+        <p className="text-sm text-green-600 bg-green-50 rounded-full py-1 px-3 inline-block mb-8 border border-green-200">
+          ✅ Secure session active
         </p>
 
         <div className="bg-gray-50 rounded-xl p-5 text-left mb-8 border border-gray-200">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
             Hackathon Next Steps
           </h2>
-          <ul className="space-y-2 text-gray-600 text-sm">
-            <li className="flex items-center">
+          <ul className="space-y-3 text-gray-600 text-sm">
+            <li className="flex items-center line-through opacity-60">
               <span className="mr-2">🎉</span> Celebrate fixing auth
             </li>
-            <li className="flex items-center">
+            <li className="flex items-center line-through opacity-60">
               <span className="mr-2">👤</span> Fetch user data (Name & Avatar)
             </li>
-            <li className="flex items-center">
-              <span className="mr-2">🤖</span> Connect the AI Model
+            <li className="flex items-center text-black font-semibold">
+              <span className="mr-2">🤖</span> Connect the AI Model (Next up!)
             </li>
           </ul>
         </div>
