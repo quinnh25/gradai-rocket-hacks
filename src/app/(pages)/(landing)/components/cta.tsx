@@ -3,12 +3,23 @@
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, GraduationCap } from "lucide-react";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/client";
 
 export default function CTA() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  function handleClick() {
+    if (session?.user) {
+      router.push("/dashboard");
+    } else {
+      authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    }
+  }
 
   return (
     <section className="relative px-4 py-28">
@@ -81,11 +92,7 @@ export default function CTA() {
               transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.4 }}
               className="mt-6 sm:mt-0"
             >
-              <Button
-                size="lg"
-                className="group px-8 text-sm"
-                onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" })}
-              >
+              <Button size="lg" className="group px-8 text-sm" onClick={handleClick}>
                 Get Started Free
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </Button>
