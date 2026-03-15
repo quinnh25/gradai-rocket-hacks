@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 interface Course {
   subject: string;
@@ -13,6 +13,12 @@ interface ParseResult {
   saved: boolean;
 }
 
+interface TranscriptEntry {
+  course_code: string;
+  credits: number;
+  term: string;
+}
+
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -22,14 +28,48 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
+// Convert stored transcript entries back into Course shape for display
+function transcriptEntriesToCourses(entries: TranscriptEntry[]): Course[] {
+  return entries.map((e) => {
+    const parts = e.course_code.split(" ");
+    return {
+      subject: parts[0] ?? "",
+      number: parts.slice(1).join(" ") ?? "",
+      semester: e.term ?? "Unknown",
+    };
+  });
+}
+
 export default function TranscriptUpload({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParseResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // On mount, check if student already has a transcript saved
+  useEffect(() => {
+    async function loadExisting() {
+      try {
+        const resp = await fetch(`/api/student?userId=${userId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.exists && data.transcript && data.transcript.length > 0) {
+            const courses = transcriptEntriesToCourses(data.transcript);
+            setResult({ courses, saved: true });
+          }
+        }
+      } catch {
+        // silently fail — just show upload UI
+      } finally {
+        setLoadingExisting(false);
+      }
+    }
+    loadExisting();
+  }, [userId]);
 
   const handleFile = useCallback((f: File) => {
     if (f.type === "application/pdf") {
@@ -90,6 +130,16 @@ export default function TranscriptUpload({ userId }: { userId: string }) {
         return acc;
       }, {})
     : null;
+
+  // Loading state while checking for existing transcript
+  if (loadingExisting) {
+    return (
+      <div className="flex items-center justify-center py-8 gap-2 text-gray-400 text-sm">
+        <span className="w-3.5 h-3.5 rounded-full border-2 border-gray-300 border-t-gray-500 animate-spin" />
+        Loading your transcript…
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

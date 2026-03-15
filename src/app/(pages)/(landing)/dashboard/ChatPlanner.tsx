@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-// Gemini conversation history format
 interface GeminiMessage {
   role: "user" | "model";
   parts: { text: string }[];
@@ -18,21 +19,6 @@ function toGeminiHistory(messages: Message[]): GeminiMessage[] {
     role: m.role === "assistant" ? "model" : "user",
     parts: [{ text: m.content }],
   }));
-}
-
-// Very simple markdown-like renderer: bold **text**, newlines, bullet points
-function renderReply(text: string) {
-  return text.split("\n").map((line, i) => {
-    const boldified = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    const isBullet = line.trimStart().startsWith("- ") || line.trimStart().startsWith("• ");
-    return (
-      <p
-        key={i}
-        className={`${isBullet ? "pl-3 before:content-['•'] before:mr-2 before:text-gray-400" : ""} leading-relaxed`}
-        dangerouslySetInnerHTML={{ __html: boldified }}
-      />
-    );
-  });
 }
 
 const SUGGESTED_PROMPTS = [
@@ -50,7 +36,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -73,7 +58,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
         body: JSON.stringify({
           userId,
           message: messageText,
-          // Send prior turns so Gemini has conversation context
           history: toGeminiHistory(messages),
         }),
       });
@@ -115,7 +99,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
                 I can check your requirements, suggest courses, and build your schedule.
               </p>
             </div>
-            {/* Suggested prompts */}
             <div className="flex flex-wrap gap-2 justify-center mt-2">
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <button
@@ -141,18 +124,25 @@ export default function ChatPlanner({ userId }: { userId: string }) {
               </div>
             )}
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm space-y-1
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm
                 ${m.role === "user"
                   ? "bg-blue-600 text-white rounded-br-sm"
                   : "bg-gray-100 text-gray-800 rounded-bl-sm"
                 }`}
             >
-              {m.role === "assistant" ? renderReply(m.content) : m.content}
+              {m.role === "assistant" ? (
+                <div className="prose prose-sm max-w-none prose-table:text-xs prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-td:border prose-th:border prose-table:border-collapse">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                m.content
+              )}
             </div>
           </div>
         ))}
 
-        {/* Loading indicator */}
         {loading && (
           <div className="flex justify-start">
             <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">
@@ -186,7 +176,6 @@ export default function ChatPlanner({ userId }: { userId: string }) {
             placeholder="Ask about your schedule, requirements, or courses…"
             rows={1}
             className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 max-h-32"
-            style={{ height: "auto" }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = "auto";
