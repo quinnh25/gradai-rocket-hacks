@@ -1,71 +1,128 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mongodb"
-    url      = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-    id            String    @id @default(auto()) @map("_id") @db.ObjectId
-    name          String
-    email         String
-    emailVerified Boolean   @default(false)
-    image         String?
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
-    sessions      Session[]
-    accounts      Account[]
+// ─── Auth Models (Better Auth) ────────────────────────────────────────────────
 
-    @@unique([email])
-    @@map("user")
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
 }
 
 model Session {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    expiresAt DateTime
-    token     String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    ipAddress String?
-    userAgent String?
-    userId    String   @db.ObjectId
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([token])
-    @@index([userId])
-    @@map("session")
+  @@index([userId])
+  @@map("session")
 }
 
 model Account {
-    id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-    accountId             String
-    providerId            String
-    userId                String    @db.ObjectId
-    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    accessToken           String?
-    refreshToken          String?
-    idToken               String?
-    accessTokenExpiresAt  DateTime?
-    refreshTokenExpiresAt DateTime?
-    scope                 String?
-    password              String?
-    createdAt             DateTime  @default(now())
-    updatedAt             DateTime  @updatedAt
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  accountId             String
+  providerId            String
+  userId                String    @db.ObjectId
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-    @@index([userId])
-    @@map("account")
+  @@index([userId])
+  @@map("account")
 }
 
 model Verification {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    identifier String
-    value      String
-    expiresAt  DateTime
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-    @@index([identifier])
-    @@map("verification")
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ─── GradAI Models ────────────────────────────────────────────────────────────
+
+model Course {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  courseId     String   @unique  // e.g. "EECS 281"
+  title        String
+  description  String
+  credits      Int
+  department   String   // e.g. "EECS", "MATH"
+  schoolCode   String   // e.g. "ENG", "LSA"
+  term         String
+  workload     String?  // workload_percent, e.g. "72"
+  prerequisites Json    // { advisory: string, enforced: string }
+  sections     Json[]   // Section objects (see ai-tools.ts for shape)
+  tags         String[] // derived at seed time, e.g. ["machine-learning", "high-workload"]
+  createdAt    DateTime @default(now())
+
+  @@map("courses")
+}
+
+model Program {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  programName       String
+  programType       String   // "Major" | "Minor"
+  college           String
+  academicYear      String?
+  totalCredits      Int
+  requirementBlocks Json[]   // RequirementBlock objects (see ai-tools.ts for shape)
+  createdAt         DateTime @default(now())
+
+  @@map("programs")
+}
+
+model Student {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @unique @db.ObjectId  // FK → User
+  enrolledPrograms String[] @db.ObjectId          // FK → Program[]
+  transcript       Json[]   // CompletedCourse objects
+  preferences      Json     // StudentPreferences object
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("students")
+}
+
+model Plan {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId         String   @db.ObjectId  // FK → Student
+  status            String   @default("draft")  // "draft" | "finalized"
+  semesters         Json[]   // Semester objects
+  requirementStatus Json[]   // per-program/block fulfillment tracking
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("plans")
 }
