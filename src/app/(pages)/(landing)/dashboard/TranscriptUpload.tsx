@@ -14,7 +14,7 @@ interface ParseResult {
 
 const GEMINI_API_KEY = "AIzaSyBDDPY1TyHWmLgFJ7Dzv26buEaqp7yz5BQ";
 const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -87,7 +87,8 @@ export default function TranscriptUpload() {
                 {
                   text: `Extract every course from this transcript. Return ONLY valid JSON — no markdown, no explanation:
 {"courses":[{"subject":"CS","number":"101","semester":"Fall 2023"}]}
-Rules: subject = dept code (e.g. "EECS"), number = course number as string, semester = term + year. Include transfer/AP credit and current enrollments.`,
+Rules: subject = dept code (e.g. "EECS"), number = course number as string, semester = term + year. Include transfer/AP credit and current enrollments. For any transfer/AP/IB credit, 
+make a separate semester that is simply called Transfer Credit`,
                 },
               ],
             },
