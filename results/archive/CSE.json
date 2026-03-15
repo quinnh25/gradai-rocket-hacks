@@ -1,0 +1,210 @@
+{
+  "program_name": "Computer Science Program \u2013 Engineering",
+  "program_type": "Major",
+  "college": "College of Engineering",
+  "academic_year": "Fall 2024-Summer 2025",
+  "overall_total_credits": 128,
+  "requirement_blocks": [
+    {
+      "block_name": "Declaration Requirements",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "To declare a major in CS-Eng, you must be a College of Engineering student and: 1. Students admitted to the University of Michigan Fall 2023 or later: must be selected to study CS through one of the approved selection pathways in order to declare CS-Eng. 2. Have completed at least one full term or 12 total credits at UM Ann Arbor. 3. Have an overall UM GPA of 2.0 or better in courses taken at the UM Ann Arbor campus and be in good standing. Grades of 'C' or better must be achieved in all courses used to satisfy the pre-declaration and other major requirements."
+    },
+    {
+      "block_name": "Declaration Requirements - Calculus",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "MATH 115",
+        "MATH 116",
+        "MATH 156"
+      ],
+      "rules_and_restrictions": "Must complete one of these courses with a grade of C or better."
+    },
+    {
+      "block_name": "Declaration Requirements - Physics or Chemistry",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PHYSICS 140",
+        "PHYSICS 160",
+        "CHEM 130"
+      ],
+      "rules_and_restrictions": "Must complete one of these courses with a grade of C or better. Calculus-based physics lectures (e.g. Physics 140 or 160) or chemistry lectures (e.g. Chem 130)."
+    },
+    {
+      "block_name": "Declaration Requirements - Required Engineering Courses",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "ENGR 100",
+        "ENGR 101",
+        "ENGR 151"
+      ],
+      "rules_and_restrictions": "Must complete one of these courses with a grade of C or better."
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - Engineering Introductory Courses",
+      "credits_required_for_block": 8,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [
+        "ENGR 100"
+      ],
+      "elective_options": [
+        "ENGR 101",
+        "ENGR 151",
+        "EECS 180",
+        "EECS 183",
+        "ROBOTICS 102"
+      ],
+      "rules_and_restrictions": "Must take ENGR 100 and one course from the elective options."
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - Chemistry",
+      "credits_required_for_block": 5,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "CHEM 125",
+        "CHEM 126",
+        "CHEM 130",
+        "CHEM 210",
+        "CHEM 211"
+      ],
+      "rules_and_restrictions": "Must take CHEM 125, CHEM 126, and CHEM 130 OR CHEM 210 and CHEM 211."
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - Physics",
+      "credits_required_for_block": 10,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [
+        "PHYSICS 140",
+        "PHYSICS 141",
+        "PHYSICS 240",
+        "PHYSICS 241"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": ""
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - Mathematics",
+      "credits_required_for_block": 16,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "MATH 115",
+        "MATH 120",
+        "MATH 185",
+        "MATH 295",
+        "MATH 116",
+        "MATH 121",
+        "MATH 156",
+        "MATH 186",
+        "MATH 276",
+        "MATH 296",
+        "MATH 214",
+        "MATH 217",
+        "MATH 417",
+        "MATH 419",
+        "ROBOTICS 101",
+        "MATH 215",
+        "MATH 216",
+        "MATH 205",
+        "MATH 285",
+        "MATH 286",
+        "MATH 316"
+      ],
+      "rules_and_restrictions": "Must satisfy requirements for MATH 115 (or alternatives), MATH 116 (or alternatives), MATH 214 (or alternatives), and MATH 215 or MATH 216 (or alternatives). If both MATH 215 and MATH 216 are taken, MATH 216 can count as a Flexible Technical Elective."
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - Intellectual Breadth",
+      "credits_required_for_block": 16,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Rules for this College requirement can be found in the CoE Bulletin under the 'Intellectual Breadth' heading."
+    },
+    {
+      "block_name": "College of Engineering Core Requirements - General Electives",
+      "credits_required_for_block": 16,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "CoE degrees require 128 total credits, and more or fewer GE credits may be needed to achieve this total depending on individual factors in a student's record."
+    },
+    {
+      "block_name": "CS-Eng Program Requirements - Program Core",
+      "credits_required_for_block": 26,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [
+        "EECS 280",
+        "EECS 281",
+        "EECS 370",
+        "EECS 376",
+        "EECS 496",
+        "TCHNCLCM 300"
+      ],
+      "elective_options": [
+        "EECS 203",
+        "MATH 465",
+        "MATH 565",
+        "STATS 250",
+        "DATASCI 101",
+        "STATS 280",
+        "STATS 412",
+        "STATS 426",
+        "EECS 301",
+        "ECON 451",
+        "IOE 265",
+        "TO 301",
+        "MATH 425",
+        "MATH 525",
+        "MATH 526",
+        "STATS 425",
+        "STATS 525",
+        "STATS 526"
+      ],
+      "rules_and_restrictions": "Must take EECS 203 (or MATH 465/565), EECS 280, EECS 281, EECS 370, EECS 376, and EECS 496. Must take one Probability and Statistics course from the options. Must take TCHNCLCM 300. *Note that MATH 465/565 requires significantly more mathematical background than does EECS 203. Speak to an advisor before selecting these courses. IOE 265 is generally open only to undeclared or IOE students. Students with credit from Statistics AP exams should pursue STATS 280 for this requirement. For students taking ROBOTICS 204 as a Flexible Technical Elective, the TCHNCLCM 300 requirement will be waived. EECS 496 can be satisfied by ENGR 499-002, COMPFOR 111, CSE 543, COMM 349, or approved Special Topics sections. Students are limited to attempting each of the three 200-level courses (EECS 203, EECS 280, EECS 281) at most twice."
+    },
+    {
+      "block_name": "CS-Eng Program Requirements - Technical Electives",
+      "credits_required_for_block": 25,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "A minimum of 25 additional credits of technical electives is required."
+    },
+    {
+      "block_name": "CS-Eng Program Requirements - Upper-Level CS Technical Electives",
+      "credits_required_for_block": 15,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "At least 12 credits must be from the ULCS list, while the remaining 3 credits can be from the Expanded ULCS list. All ULCS are included in the Expanded ULCS list."
+    },
+    {
+      "block_name": "CS-Eng Program Requirements - Flexible Technical Electives",
+      "credits_required_for_block": 10,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "The remainder of the technical elective credits may be chosen from the approved Flexible Technical Electives lists. A maximum of 4 credits of EECS 499/399 (or other upper-level directed/independent study) may count in Flexible Technical Electives; additional credits will count as general electives."
+    },
+    {
+      "block_name": "CS-Eng Program Requirements - Major Design Experience",
+      "credits_required_for_block": 6,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [
+        "TCHNCLCM 497"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must take an approved CS MDE course (4 credits). TCHNCLCM 497 (2 credits) must be taken in the same or later semester as the MDE (preferably the same semester). The MDE is a capstone design project that is recommended to be taken during one of your final two semesters. See page 5 for the current list of MDE courses."
+    }
+  ]
+}

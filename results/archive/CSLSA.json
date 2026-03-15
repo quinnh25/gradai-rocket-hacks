@@ -1,0 +1,144 @@
+{
+  "program_name": "Computer Science Program \u2013 LSA",
+  "program_type": "Major",
+  "college": "College of Literature, Science, and the Arts",
+  "academic_year": "Fall 2025-Winter 2026",
+  "overall_total_credits": 55,
+  "requirement_blocks": [
+    {
+      "block_name": "Introductory Programming Prerequisite",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [
+        "EECS 183"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must be taken before EECS 280. Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "Pre-Declaration Math Requirement",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "MATH 115",
+        "MATH 120",
+        "MATH 185",
+        "MATH 295",
+        "MATH 116",
+        "MATH 121",
+        "MATH 156",
+        "MATH 186",
+        "MATH 276",
+        "MATH 296",
+        "MATH 214",
+        "MATH 217",
+        "MATH 417",
+        "MATH 419",
+        "MATH 205",
+        "MATH 215",
+        "MATH 285",
+        "MATH 216",
+        "MATH 286",
+        "MATH 316"
+      ],
+      "rules_and_restrictions": "One approved math course is required for pre-declaration. Must have a final letter grade of C or higher. Students admitted to the University of Michigan Fall 2023 or later must be selected to study CS through one of the approved selection pathways in order to declare CS-LSA. Academic Good Standing is required for declaration."
+    },
+    {
+      "block_name": "Pre-Declaration Discrete Math Requirement",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "EECS 203",
+        "MATH 465",
+        "MATH 565"
+      ],
+      "rules_and_restrictions": "Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "Pre-Declaration Data Structures Requirement",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [
+        "EECS 280"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "CS Core - Computer Science Courses",
+      "credits_required_for_block": 12,
+      "mandatory_courses": [
+        "EECS 281",
+        "EECS 370",
+        "EECS 376"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "All three courses are required. Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "CS Core - Second Math Requirement",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "MATH 115",
+        "MATH 120",
+        "MATH 185",
+        "MATH 295",
+        "MATH 116",
+        "MATH 121",
+        "MATH 156",
+        "MATH 186",
+        "MATH 276",
+        "MATH 296",
+        "MATH 214",
+        "MATH 217",
+        "MATH 417",
+        "MATH 419",
+        "MATH 205",
+        "MATH 215",
+        "MATH 285",
+        "MATH 216",
+        "MATH 286",
+        "MATH 316"
+      ],
+      "rules_and_restrictions": "One approved math course is required. Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "CS Core - Probability & Statistics",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "STATS 250",
+        "DATASCI 101",
+        "STATS 280",
+        "STATS 412",
+        "STATS 426",
+        "EECS 301",
+        "ECON 451",
+        "IOE 265",
+        "TO 301",
+        "MATH 425",
+        "STATS 425",
+        "MATH 525",
+        "STATS 525",
+        "MATH 526",
+        "STATS 526"
+      ],
+      "rules_and_restrictions": "One course is required. Students with credit from Statistics AP exams should pursue STATS 280 for this requirement. Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "Upper Level CS Technical Electives (ULCS)",
+      "credits_required_for_block": 15,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "15 credits must be in approved Upper Level CS (ULCS) Electives. At least 12 credits must be from the ULCS list, while the remaining 3 credits can be from the Expanded ULCS list. An EECS course may only count toward one requirement\u2014either ULCS or Capstone, not both. All ULCS are included in the Expanded ULCS list. Students must be declared CS-LSA before they can register for ULCS courses. ULCS elective credit is rarely transferable from an outside institution. Some special topics courses are designated as ULCS in certain terms. Must have a final letter grade of C or higher."
+    },
+    {
+      "block_name": "Capstone Course",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "EECS 443"
+      ],
+      "rules_and_restrictions": "Students must take an approved EECS CS Capstone course to fulfill the Capstone requirement. Honors thesis (EECS 443) is an option. An EECS course may only count toward one requirement\u2014either ULCS or Capstone, not both. Must have a final letter grade of C or higher."
+    }
+  ]
+}

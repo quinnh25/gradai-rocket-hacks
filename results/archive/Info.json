@@ -1,0 +1,152 @@
+{
+  "program_name": "Bachelor of Science in Information",
+  "program_type": "Major",
+  "college": "School of Information",
+  "academic_year": "Unknown Year",
+  "overall_total_credits": 120,
+  "requirement_blocks": [
+    {
+      "block_name": "Prerequisite - Programming",
+      "credits_required_for_block": 4,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "SI 101",
+        "EECS 183",
+        "ENGR 101"
+      ],
+      "rules_and_restrictions": "Choose one course from this list. Must be completed with a grade of C- or higher. SI 101 is strongly preferred. EECS 183 and ENGR 101 do not count toward your UMSI credit requirement."
+    },
+    {
+      "block_name": "Prerequisite - First-Year Writing",
+      "credits_required_for_block": 3,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "ENGLISH 124",
+        "ENGLISH 125"
+      ],
+      "rules_and_restrictions": "Choose one course from this list or an equivalent first-year writing course. Must be completed with a grade of C- or higher."
+    },
+    {
+      "block_name": "Core Courses",
+      "credits_required_for_block": 15,
+      "courses_required_for_block": 5,
+      "mandatory_courses": [
+        "SI 110",
+        "SI 261",
+        "SI 300",
+        "SI 310"
+      ],
+      "elective_options": [
+        "SI 201",
+        "EECS 280",
+        "EECS 281"
+      ],
+      "rules_and_restrictions": "SI 201 counts as upper-level credit. Successful completion of EECS 280 or EECS 281 with a grade of C or higher will waive the SI 201 requirement. EECS 280 and EECS 281 do not count toward your UMSI or upper-level credit requirements."
+    },
+    {
+      "block_name": "Pathway Selection",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Students must choose one pathway: Information Analysis or User Experience Design. The courses for each pathway are listed in subsequent blocks."
+    },
+    {
+      "block_name": "Information Analysis Pathway - Capstone Prerequisite Courses",
+      "credits_required_for_block": 17,
+      "courses_required_for_block": 5,
+      "mandatory_courses": [
+        "SI 315",
+        "SI 305",
+        "SI 345",
+        "SI 385",
+        "SI 425"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "SI 385 is fall only. SI 425 is fall only."
+    },
+    {
+      "block_name": "Information Analysis Pathway - Capstone Sequence",
+      "credits_required_for_block": 6,
+      "courses_required_for_block": 2,
+      "mandatory_courses": [
+        "SI 485",
+        "SI 495"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must be taken in direct sequence. SI 485 is fall only. SI 495 is winter only."
+    },
+    {
+      "block_name": "Information Analysis Pathway - Selective Prerequisites",
+      "credits_required_for_block": 3,
+      "courses_required_for_block": 1,
+      "mandatory_courses": [],
+      "elective_options": [
+        "SI 325",
+        "SI 303"
+      ],
+      "rules_and_restrictions": "Choose one course from this list. SI 325 is fall only."
+    },
+    {
+      "block_name": "Information Analysis Pathway - Advanced Selectives",
+      "credits_required_for_block": 8,
+      "courses_required_for_block": 2,
+      "mandatory_courses": [],
+      "elective_options": [
+        "SI 405",
+        "SI 465",
+        "SI 403",
+        "SI 413"
+      ],
+      "rules_and_restrictions": "Choose two courses from this list. SI 413 is winter only."
+    },
+    {
+      "block_name": "User Experience Design Pathway - Capstone Prerequisite Courses",
+      "credits_required_for_block": 15,
+      "courses_required_for_block": 5,
+      "mandatory_courses": [
+        "SI 307",
+        "SI 357",
+        "SI 347",
+        "SI 303",
+        "SI 313"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must be taken for a letter grade."
+    },
+    {
+      "block_name": "User Experience Design Pathway - Capstone Sequence",
+      "credits_required_for_block": 6,
+      "courses_required_for_block": 2,
+      "mandatory_courses": [
+        "SI 487",
+        "SI 497"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Must be taken in direct sequence. SI 487 is fall only. SI 497 is winter only."
+    },
+    {
+      "block_name": "User Experience Design Pathway - Advanced Selectives",
+      "credits_required_for_block": 8,
+      "courses_required_for_block": 2,
+      "mandatory_courses": [],
+      "elective_options": [
+        "SI 407",
+        "SI 457",
+        "SI 403",
+        "SI 413"
+      ],
+      "rules_and_restrictions": "Choose two courses from this list. SI 407 is fall only. SI 413 is winter only."
+    },
+    {
+      "block_name": "UMSI Electives",
+      "credits_required_for_block": 0,
+      "courses_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Students must complete additional UMSI courses to reach a total of 54 UMSI credits. The number of elective credits required depends on the chosen pathway (Information Analysis or User Experience Design) and specific course selections within that pathway. For the Information Analysis pathway, 5 UMSI elective credits are typically required. For the User Experience Design pathway, 10 UMSI elective credits are typically required."
+    }
+  ]
+}

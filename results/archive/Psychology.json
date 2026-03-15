@@ -1,0 +1,186 @@
+{
+  "program_name": "Psychology Major",
+  "program_type": "Major",
+  "college": "University of Michigan - Department of Psychology",
+  "academic_year": "Effective Fall 2021 - present; updated on 2/18/25",
+  "overall_total_credits": 32,
+  "requirement_blocks": [
+    {
+      "block_name": "Prerequisites to Declare the Major",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Students may declare the Psychology major once they have passed an Introductory Psychology course (with a 'C' or better), Statistics 206/250/280 (with a 'C-' or better, or Pass/P), and completed the online Pre-Major Tutorials at https://lsa.umich.edu/psych/undergraduates/major-in-psychology-or-bcn/how-to-declare. Credits from pre-requisites do not count toward the 32 required major credits."
+    },
+    {
+      "block_name": "Introductory Psychology Course Prerequisite",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 111",
+        "PSYCH 112",
+        "PSYCH 114",
+        "PSYCH 115"
+      ],
+      "rules_and_restrictions": "Complete one Introductory Psychology Course (with minimum grade of 'C')."
+    },
+    {
+      "block_name": "Statistics Course Prerequisite",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "DATASCI 101",
+        "STATS 250",
+        "STATS 280"
+      ],
+      "rules_and_restrictions": "Complete one Statistics Course (with a minimum grade of 'C-' or Pass/P)."
+    },
+    {
+      "block_name": "Major Requirements: Breadth Group Courses",
+      "credits_required_for_block": 12,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Complete three Breadth Group Courses: One course from each of the following three breadth groups must be completed. Additional breadth courses do not count towards the major credits."
+    },
+    {
+      "block_name": "Biopsychology/Cognitive Breadth Group",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 220",
+        "PSYCH 235",
+        "PSYCH 240",
+        "NEURO 240"
+      ],
+      "rules_and_restrictions": ""
+    },
+    {
+      "block_name": "Developmental/Psychopathology Breadth Group",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 250",
+        "PSYCH 270"
+      ],
+      "rules_and_restrictions": ""
+    },
+    {
+      "block_name": "Social/Personality/Gender Breadth Group",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 280",
+        "PSYCH 290",
+        "PSYCH 291",
+        "WGS 291"
+      ],
+      "rules_and_restrictions": ""
+    },
+    {
+      "block_name": "Major Requirements: Psychology Lab Requirement",
+      "credits_required_for_block": 6,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "The lab requirement must be met in one of the following three ways for a minimum of 6 credits. Each course must be taken for at least 3 credits in a single term. Option 1: One course from Methods-Based Labs (A) AND one course from Experiential Labs (B). Option 2: Two courses from Methods-Based Labs (A). Option 3: Honors Thesis or Senior Thesis sequence. Courses that are graded 'credit/no credit' may be used to satisfy the categorical requirement for a laboratory course, but do not count toward the 32 credits needed to complete the Psychology major."
+    },
+    {
+      "block_name": "Methods-Based Labs (A)",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 300",
+        "PSYCH 301",
+        "PSYCH 302",
+        "NEURO 302",
+        "PSYCH 303",
+        "PSYCH 331",
+        "PSYCH 341",
+        "PSYCH 342",
+        "PSYCH 351",
+        "PSYCH 357",
+        "PSYCH 366",
+        "PSYCH 371",
+        "PSYCH 381",
+        "SOC 472",
+        "PSYCH 383",
+        "SOC 383",
+        "PSYCH 391",
+        "PSYCH 422",
+        "PSYCH 423",
+        "PSYCH 451"
+      ],
+      "rules_and_restrictions": ""
+    },
+    {
+      "block_name": "Experiential Labs (B)",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 211",
+        "PSYCH 305",
+        "PSYCH 306",
+        "PSYCH 307",
+        "PSYCH 311",
+        "ALA 321",
+        "SOC 321",
+        "PSYCH 317",
+        "PSYCH 324",
+        "SOC 324",
+        "UC 324",
+        "PSYCH 325",
+        "AMCULT 321",
+        "PSYCH 404",
+        "PSYCH 405",
+        "PSYCH 226",
+        "PSYCH 322",
+        "PSYCH 326",
+        "PSYCH 422",
+        "PSYCH 423"
+      ],
+      "rules_and_restrictions": "*Experiential based labs that are graded Credit/No Credit may fulfill the categorical requirement for this lab; however, the credits do not count towards the 32 major credits."
+    },
+    {
+      "block_name": "Psychology Thesis Sequence (Optional)",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 424",
+        "PSYCH 426",
+        "PSYCH 428",
+        "PSYCH 429"
+      ],
+      "rules_and_restrictions": "The Senior and Honors thesis sequences are advanced research opportunities during the final two semesters. To be eligible, students must gain significant research experience prior to their final year. Psych 424 and 428 fulfill the experiential/research lab; Psych 426 and 429 fulfill the methods lab and ULWR. Interested students should consult with an advisor and view the website for more information: https://lsa.umich.edu/psych/undergraduates/honors-program/for-prospective-honors-students.html"
+    },
+    {
+      "block_name": "Major Requirements: Upper Level Elective Requirement",
+      "credits_required_for_block": 12,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "At least 4 courses for at least 12 credits: 2 courses must be at the 300-level and at least 1 course at the 400-level. 1 off-tier course may be substituted for a 300-level course (see below). Psych 420/421 may NOT be the only 400-level course. For a complete list of courses that count towards this requirement, view the term-specific course charts: https://lsa.umich.edu/psych/undergraduates/major-in-psychology-or-bcn/course-info.html"
+    },
+    {
+      "block_name": "Psychology Off-Tier Course Option",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [
+        "PSYCH 225",
+        "COGSCI 200"
+      ],
+      "rules_and_restrictions": "One course from this list may be substituted for a 300-level upper level elective course."
+    },
+    {
+      "block_name": "Additional Upper-Level Elective (to reach 32 credits)",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "A minimum of 32 credits are required. The pre-requisite courses are not included in the total credits. If you have completed all the above coursework but have not reached 32 credits, you must complete additional Psych coursework at the 300-level or above until at least 32 credits are achieved."
+    },
+    {
+      "block_name": "General Program Rules and GPA Requirement",
+      "credits_required_for_block": 0,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Must earn a cumulative grade point average (GPA) of at least 2.0 in ALL courses taken within the Psychology Department, as well as any non-Psych courses that are counting towards the major. Stats is not included in the major GPA. Transfer courses are not calculated into the GPA unless the grade appears on the official UM transcript. Once you have declared, your major GPA can be viewed through your LSA Audit Checklist: https://myadvising.lsa.umich.edu/audit-checklist. All courses, with the exception of the Stats pre-requisite and non-graded labs, must be taken for a letter grade. Psychology majors are urged to consult with an advisor within the Department at least once per year to review their progress toward the major requirements. When taking a course that is crosslisted under multiple departments (i.e. PSYCH 240 / NEURO 240), you can register under EITHER department. It will count towards your major the same way, regardless. Transfer courses may be applied toward your major, but at least 24 credits must be completed in-residence through the University of Michigan's Department of Psychology (includes pre-requisite and major credits). Of those 24 credits, at least 12 credits must be in upper level courses (300+, letter graded) in Psychology. Visit https://lsa.umich.edu/psych/undergraduates/transfer-credit for more information."
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "program_name": "BBA",
+  "program_type": "Major",
+  "college": "Ross",
+  "academic_year": "2024-2025",
+  "overall_total_credits": 120,
+  "requirement_blocks": [
+    {
+      "block_name": "Overall Program Credit Breakdown",
+      "credits_required_for_block": 120,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "62 Ross Credits, 54 U-M Credits, and 4 Ross/U-M Elective Credits are required for a total of 120 credits."
+    },
+    {
+      "block_name": "Ross Fixed Core Courses",
+      "credits_required_for_block": 27,
+      "mandatory_courses": [
+        "BA 100",
+        "ACC 300",
+        "BCOM 250",
+        "BA 200",
+        "TO 301",
+        "ACC 301",
+        "STRATEGY 290",
+        "BCOM 350",
+        "BL 300",
+        "STRATEGY 390"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Includes Signature Learning Experiences. Transfer students may take BA 102 (1 credit) instead of BA 100."
+    },
+    {
+      "block_name": "Ross Floating Core Courses",
+      "credits_required_for_block": 10,
+      "mandatory_courses": [
+        "BE 300",
+        "FIN 300",
+        "MKT 300",
+        "TO 300"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Students must complete all fixed and floating core courses by the end of the Senior Fall semester."
+    },
+    {
+      "block_name": "Ross Capstone Experience",
+      "credits_required_for_block": 3,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Students must take at least one capstone course."
+    },
+    {
+      "block_name": "Ross Business Electives",
+      "credits_required_for_block": 16,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "16-18 credits or 6-7 classes, including approved Global Student Experiences coursework, must be completed by graduation."
+    },
+    {
+      "block_name": "Additional Ross Electives",
+      "credits_required_for_block": 6,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "These credits fulfill the remaining Ross credit requirement."
+    },
+    {
+      "block_name": "U-M General Requirements - Foundational",
+      "credits_required_for_block": 7,
+      "mandatory_courses": [
+        "ECON 101"
+      ],
+      "elective_options": [
+        "MATH 115",
+        "MATH 116",
+        "MATH 215"
+      ],
+      "rules_and_restrictions": "First-year writing requirement; Calculus I, II, or III."
+    },
+    {
+      "block_name": "U-M General Requirements - Distribution Categories",
+      "credits_required_for_block": 30,
+      "mandatory_courses": [
+        "ECON 102"
+      ],
+      "elective_options": [],
+      "rules_and_restrictions": "Complete 3 of 4 distribution categories by graduation: Foreign Language (4th semester proficiency. Last semester must be taken for a grade); Humanities (9 credits); Social Science (9 credits, not including ECON 101 or 102); Natural Science or MSA (9 credits)."
+    },
+    {
+      "block_name": "U-M General Electives",
+      "credits_required_for_block": 17,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "These credits fulfill the remaining U-M credit requirement."
+    },
+    {
+      "block_name": "Ross/U-M Elective Credits",
+      "credits_required_for_block": 4,
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Four additional Ross or U-M credits must be completed before graduation."
+    },
+    {
+      "block_name": "Inclusive Leaders Pathway",
+      "mandatory_courses": [],
+      "elective_options": [],
+      "rules_and_restrictions": "Milestone 1, 2, 3, and 4. The Inclusive Leaders Pathway offers a structured developmental journey grounded in self-reflection, personal growth, and leadership that places people and relationships at its core. At Ross, you can expect to build essential competencies to work across cultural and organizational contexts and lead with empathy, clarity, and purpose."
+    }
+  ]
+}
