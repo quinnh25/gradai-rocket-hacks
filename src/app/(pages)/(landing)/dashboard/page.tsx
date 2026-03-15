@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import ProfileBadge from "./profile-badge";
 import TranscriptUpload from "./TranscriptUpload";
+import ChatPlanner from "./ChatPlanner";
 
 export default async function Dashboard() {
   const session = await auth.api.getSession({
@@ -17,45 +17,71 @@ export default async function Dashboard() {
   const user = session.user;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50">
       <ProfileBadge email={user.email} image={user.image} name={user.name} />
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-        {user.image ? (
-          <img
-            src={user.image}
-            alt={`${user.name}'s profile picture`}
-            className="mx-auto h-20 w-20 rounded-full border-4 border-green-100 mb-6 shadow-sm"
-          />
-        ) : (
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-            <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        )}
 
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-          Welcome, {user.name?.split(" ")[0]}!
-        </h1>
-        <p className="text-gray-500 mb-2 font-medium">{user.email}</p>
-        <p className="text-sm text-green-600 bg-green-50 rounded-full py-1 px-3 inline-block mb-8 border border-green-200">
-          ✅ Secure session active
-        </p>
-
-        {/* Transcript upload */}
-        <div className="bg-gray-50 rounded-xl p-5 text-left mb-4 border border-gray-200">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
-            Upload Your Transcript
-          </h2>
-          <TranscriptUpload />
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            Welcome back, {user.name?.split(" ")[0]}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Let&apos;s plan your path to graduation.
+          </p>
         </div>
 
-        <Link
-          href="/"
-          className="inline-flex justify-center w-full rounded-lg bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
-        >
-          Back to Home
-        </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 items-start">
+          {/* ── Left column: transcript upload ── */}
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">
+                📄 Your Transcript
+              </h2>
+              <TranscriptUpload userId={user.id} />
+            </div>
+
+            {/* Status card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
+                🎓 Session
+              </h2>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">Signed in as</span>
+                  <span className="font-medium text-gray-700 truncate max-w-[160px]">
+                    {user.email}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">Status</span>
+                  <span className="text-green-600 bg-green-50 rounded-full px-2 py-0.5 text-xs font-medium border border-green-100">
+                    ✅ Active
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right column: AI chat planner ── */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+               style={{ height: "680px" }}>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                G
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">GradAI Planner</p>
+                <p className="text-xs text-gray-400">
+                  Powered by Gemini · Knows your transcript &amp; requirements
+                </p>
+              </div>
+            </div>
+            <div style={{ height: "calc(680px - 65px)" }}>
+              <ChatPlanner userId={user.id} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

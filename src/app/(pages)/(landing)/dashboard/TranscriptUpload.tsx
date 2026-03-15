@@ -10,6 +10,7 @@ interface Course {
 
 interface ParseResult {
   courses: Course[];
+  saved: boolean;
 }
 
 function toBase64(file: File): Promise<string> {
@@ -21,32 +22,20 @@ function toBase64(file: File): Promise<string> {
   });
 }
 
-function downloadJSON(data: ParseResult, filename: string): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename.replace(/\.pdf$/i, ".json");
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-export default function TranscriptUpload() {
+export default function TranscriptUpload({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [result, setResult] = useState<ParseResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((f: File) => {
     if (f.type === "application/pdf") {
       setFile(f);
       setError(null);
-      setDone(false);
+      setResult(null);
       setStatus(null);
     }
   }, []);
@@ -65,18 +54,17 @@ export default function TranscriptUpload() {
     if (!file) return;
     setLoading(true);
     setError(null);
-    setDone(false);
+    setResult(null);
     setStatus("Reading PDF…");
 
     try {
       const base64 = await toBase64(file);
       setStatus("Analyzing transcript…");
 
-      // Call our backend proxy — API key never touches the browser
       const resp = await fetch("/api/parse-transcript", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64: base64 }),
+        body: JSON.stringify({ pdfBase64: base64, userId }),
       });
 
       if (!resp.ok) {
@@ -85,95 +73,130 @@ export default function TranscriptUpload() {
       }
 
       const parsed: ParseResult = await resp.json();
-      downloadJSON(parsed, file.name);
-      setDone(true);
-      setStatus(
-        `${parsed.courses.length} courses saved to ${file.name.replace(/\.pdf$/i, ".json")}`
-      );
+      setResult(parsed);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
-      setStatus(null);
     } finally {
       setLoading(false);
+      setStatus(null);
     }
   };
 
+  const bySemester = result
+    ? result.courses.reduce<Record<string, Course[]>>((acc, c) => {
+        if (!acc[c.semester]) acc[c.semester] = [];
+        acc[c.semester].push(c);
+        return acc;
+      }, {})
+    : null;
+
   return (
     <div className="w-full">
-      {/* Drop zone */}
-      <div
-        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
-          ${dragging
-            ? "border-blue-400 bg-blue-50"
-            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-          }`}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        onClick={() => fileRef.current?.click()}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.[0]) handleFile(e.target.files[0]);
-          }}
-        />
-        <div className="flex flex-col items-center gap-2 pointer-events-none">
-          <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-lg">
-            📄
-          </div>
-          {file ? (
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <p className="text-sm font-medium text-gray-700">{file.name}</p>
+      {!result ? (
+        <>
+          <div
+            className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
+              ${dragging
+                ? "border-blue-400 bg-blue-50"
+                : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+              }`}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            onClick={() => fileRef.current?.click()}
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
+            />
+            <div className="flex flex-col items-center gap-2 pointer-events-none">
+              <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-lg">
+                📄
+              </div>
+              {file ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <p className="text-sm font-medium text-gray-700">{file.name}</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-gray-700">Drop your transcript here</p>
+                  <p className="text-xs text-gray-400">or click to browse · PDF only</p>
+                </>
+              )}
             </div>
-          ) : (
-            <>
-              <p className="text-sm font-semibold text-gray-700">
-                Drop your transcript here
-              </p>
-              <p className="text-xs text-gray-400">or click to browse · PDF only</p>
-            </>
+          </div>
+
+          <button
+            disabled={!file || loading}
+            onClick={parse}
+            className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                {status}
+              </>
+            ) : (
+              "Upload & Parse Transcript"
+            )}
+          </button>
+
+          <p className="mt-2.5 text-center text-[11px] text-gray-400 leading-relaxed">
+            🔒 Your transcript is processed securely and never stored permanently.
+          </p>
+
+          {error && (
+            <p className="mt-3 text-center text-xs text-red-500 font-mono break-all">
+              {error}
+            </p>
           )}
+        </>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-green-700">
+                ✅ {result.courses.length} courses imported
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {result.saved
+                  ? "Saved to your profile · AI planner ready"
+                  : "Parsed · log in to save to profile"}
+              </p>
+            </div>
+            <button
+              onClick={() => { setResult(null); setFile(null); }}
+              className="text-xs text-gray-400 hover:text-gray-600 underline"
+            >
+              Re-upload
+            </button>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto space-y-3 pr-1">
+            {Object.entries(bySemester!).map(([semester, courses]) => (
+              <div key={semester}>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                  {semester}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {courses.map((c) => (
+                    <span
+                      key={`${c.subject}-${c.number}`}
+                      className="text-xs bg-gray-100 text-gray-700 rounded-md px-2 py-0.5 font-mono"
+                    >
+                      {c.subject} {c.number}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Upload button */}
-      <button
-        disabled={!file || loading}
-        onClick={parse}
-        className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            {status}
-          </>
-        ) : (
-          "Upload & Parse Transcript"
-        )}
-      </button>
-
-      {/* Disclaimer */}
-      <p className="mt-2.5 text-center text-[11px] text-gray-400 leading-relaxed">
-        🔒 GradAI will never store your personal data. Your transcript is processed
-        securely and never stored on our servers.
-      </p>
-
-      {/* Success / error */}
-      {done && !loading && (
-        <p className="mt-3 text-center text-xs text-green-600 font-medium">
-          ✅ {status}
-        </p>
-      )}
-      {error && (
-        <p className="mt-3 text-center text-xs text-red-500 font-mono break-all">
-          {error}
-        </p>
       )}
     </div>
   );
