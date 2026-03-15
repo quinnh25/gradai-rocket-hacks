@@ -64,7 +64,29 @@ export default function TranscriptUpload({ userId }: { userId: string }) {
       const resp = await fetch("/api/parse-transcript", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+<<<<<<< HEAD
         body: JSON.stringify({ pdfBase64: base64, userId }),
+=======
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { inline_data: { mime_type: "application/pdf", data: base64 } },
+                {
+                  text: `Extract every course from this transcript. Return ONLY valid JSON — no markdown, no explanation:
+{"courses":[{"subject":"CS","number":"101","semester":"Fall 2023"}]}
+Rules: subject = dept code (e.g. "EECS"), number = course number as string, semester = term + year. Include transfer/AP credit and current enrollments. For any transfer/AP/IB credit, 
+make a separate semester that is simply called Transfer Credit. In terms of order, always do transfer credits first and then the other semesters in chronological order (i.e. Fall 2025, Winter 2026, Fall 2026)`,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0,
+            response_mime_type: "application/json",
+          },
+        }),
+>>>>>>> 3aae1c9 (program guides)
       });
 
       if (!resp.ok) {
