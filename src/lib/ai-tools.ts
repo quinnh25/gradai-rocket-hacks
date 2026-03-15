@@ -137,7 +137,12 @@ export const GEMINI_TOOLS = [
           "IMPORTANT: Always pass program_name when the student has told you their major, " +
           "even if it is not in their enrolled programs in the database — the scheduler will " +
           "look it up by name. " +
-          "Before calling, confirm the term. Preferences are optional — use defaults if not specified.",
+          "Before calling, confirm the term. Preferences are optional — use defaults if not specified. " +
+          "MODIFYING AN EXISTING SCHEDULE: If the student already has a schedule and asks to " +
+          "change it (e.g. 'move X off Friday', 'swap out Y', 'add a LING class'), you MUST " +
+          "pass the current course codes in pinned_courses so the scheduler keeps them. " +
+          "Use excluded_days_for_courses to move a specific course off a specific day. " +
+          "Use required_courses to force specific new courses into the schedule.",
         parameters: {
           type: "object",
           properties: {
@@ -170,6 +175,34 @@ export const GEMINI_TOOLS = [
             max_workload_percent: {
               type: "number",
               description: "Maximum workload percent per course (0-100). Omit for no limit.",
+            },
+            pinned_courses: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Course codes that MUST stay in the schedule. Pass ALL current schedule courses here " +
+                "when the student asks to modify an existing schedule. " +
+                "Example: ['EECS 281', 'EECS 370', 'PHYSICS 240', 'EECS 376']",
+            },
+            required_courses: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Course codes the student explicitly wants added, beyond urgency scoring. " +
+                "Call search_courses first to find the exact code. " +
+                "Example: ['LING 111'] when student says 'include a LING class'.",
+            },
+            excluded_days_for_courses: {
+              type: "object",
+              description:
+                "Map of course_code to days to exclude for that specific course. " +
+                "Use when student says 'move TCHNCLCM 300 off Friday'. " +
+                "Day codes: 'Mo', 'Tu', 'We', 'Th', 'Fr'. " +
+                "Example: { 'TCHNCLCM 300': ['Fr'] }",
+              additionalProperties: {
+                type: "array",
+                items: { type: "string" },
+              },
             },
           },
           required: ["user_id", "term"],
@@ -559,6 +592,9 @@ export async function executeTool(
           term: input.term,
           targetCredits: input.target_credits ?? 15,
           programName: input.program_name,
+          pinnedCourses: input.pinned_courses ?? [],
+          requiredCourses: input.required_courses ?? [],
+          excludedDaysForCourses: input.excluded_days_for_courses ?? {},
           preferences: {
             avoidMornings: input.avoid_mornings ?? false,
             freeFridays: input.free_fridays ?? false,

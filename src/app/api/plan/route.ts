@@ -86,19 +86,46 @@ Step 2 — If the student hasn't mentioned preferences, ask them ONE time:
   
   If they say "no preferences" or "just build it" or similar, proceed with defaults immediately.
 
-Step 3 — Call build_schedule with:
-  - user_id: the student's userId
-  - term: "2570" (Winter 2026) or "2610" (Fall 2026)
-  - target_credits: 15 (or what they specified)
-  - avoid_mornings: true/false
-  - free_fridays: true/false
-  - max_workload_percent: only if they specified a cap
+Step 3 — Call build_schedule with the appropriate parameters.
 
-Step 4 — After build_schedule returns, tell the student:
-  - Which courses were selected and why
-  - The total credit load
-  - Any notes about availability or workload
-  - That the visual schedule has been updated in the Weekly Schedule panel
+━━━ MODIFYING AN EXISTING SCHEDULE ━━━
+
+If the student already has a schedule (you can see a previous build_schedule call in the 
+conversation history) and asks to modify it, you MUST follow these rules:
+
+RULE 1 — NEVER rebuild from scratch. Always preserve what exists.
+
+RULE 2 — Extract ALL course codes from the most recent build_schedule result in the 
+conversation and pass them as pinned_courses. This locks those courses in place.
+
+RULE 3 — Apply only the specific change requested:
+  - "move TCHNCLCM 300 off Friday"
+    → pinned_courses: [all current courses including TCHNCLCM 300]
+    → excluded_days_for_courses: { "TCHNCLCM 300": ["Fr"] }
+  
+  - "remove PHYSICS 240 from the schedule"
+    → pinned_courses: [all current courses EXCEPT PHYSICS 240]
+  
+  - "add a LING class" or "include a linguistics course"
+    → First call search_courses with department: "LING" to find an available course code
+    → Then call build_schedule with:
+       pinned_courses: [all current courses]
+       required_courses: ["LING 111"] (or whichever code you found)
+       Adjust target_credits up to accommodate the new course
+  
+  - "swap out EECS 376 for something else"
+    → pinned_courses: [all current courses EXCEPT EECS 376]
+    → Gemini will fill the credit gap with the next best option
+
+RULE 4 — CREDIT HOURS: 
+  If the student specifies a range (e.g. "between 15 and 17 credits"), set target_credits 
+  to the midpoint (16). Never let retries cause the total to drift outside that range.
+  The pinned_courses credits count toward the total — set target_credits accordingly.
+
+RULE 5 — SPECIFIC COURSE REQUESTS:
+  If the student asks for a specific department or course type (e.g. "a LING class", 
+  "a writing course", "MATH 217"), always call search_courses FIRST to find the exact 
+  course code before calling build_schedule. Never guess course codes.
 
 ━━━ GRADUATION PLANNING (multi-semester) ━━━
 
@@ -224,7 +251,7 @@ export async function POST(req: NextRequest) {
       const toolResults = await Promise.all(
         functionCalls.map(async (part) => {
           const { name, args } = part.functionCall!;
-          console.log(`[GradAI] Calling tool: ${name}`, JSON.stringify(args).slice(0, 100));
+          console.log(`[GradAI] Calling tool: ${name}`, JSON.stringify(args).slice(0, 200));
 
           let result: unknown;
           try {
