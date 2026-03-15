@@ -232,7 +232,7 @@ async function main() {
   const col = db.collection<CourseDocument>("courses");
 
   // Create index on courseId for fast lookups
-  await col.createIndex({ courseId: 1 }, { unique: true });
+  await col.createIndex({ courseId: 1, term: 1 }, { unique: true });
   await col.createIndex({ department: 1 });
   await col.createIndex({ tags: 1 });
   console.log("✅ Indexes created");
@@ -252,7 +252,7 @@ async function main() {
       const doc = transformCourse(raw);
       return {
         updateOne: {
-          filter: { courseId: doc.courseId },
+          filter: { courseId: doc.courseId, term: doc.term },
           update: { $set: doc },
           upsert: true,
         },
