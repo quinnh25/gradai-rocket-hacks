@@ -87,9 +87,8 @@ async function main() {
     process.exit(1);
   }
 
-  const raw: RawProgram[] = JSON.parse(
-    fs.readFileSync(path.resolve(filePath), "utf-8")
-  );
+  const parsed = JSON.parse(fs.readFileSync(path.resolve(filePath), "utf-8"));
+  const raw: RawProgram[] = Array.isArray(parsed) ? parsed : [parsed];
 
   console.log(`📋 Found ${raw.length} program(s) to seed`);
 
