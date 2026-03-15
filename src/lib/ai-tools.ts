@@ -132,42 +132,49 @@ export const GEMINI_TOOLS = [
       {
         name: "build_schedule",
         description:
-            "Build a conflict-free weekly schedule for the student for a specific term. " +
-            "Call this when the student asks for their schedule for a single semester. " +
-            "Before calling, make sure you have: the term (ask if unclear), and optionally " +
-            "their preferences (avoid mornings, free Fridays, max workload). " +
-            "If the student hasn't specified preferences, use defaults and mention what you assumed.",
+          "Build a conflict-free weekly schedule for the student for a specific term. " +
+          "Call this when the student asks for their schedule for a single semester. " +
+          "IMPORTANT: Always pass program_name when the student has told you their major, " +
+          "even if it is not in their enrolled programs in the database — the scheduler will " +
+          "look it up by name. " +
+          "Before calling, confirm the term. Preferences are optional — use defaults if not specified.",
         parameters: {
-            type: "object",
-            properties: {
+          type: "object",
+          properties: {
             user_id: {
-                type: "string",
-                description: "The Better Auth user ID",
+              type: "string",
+              description: "The Better Auth user ID",
             },
             term: {
-                type: "string",
-                description: "Term code: '2570' for Winter 2026, '2610' for Fall 2026",
+              type: "string",
+              description: "Term code: '2570' for Winter 2026, '2610' for Fall 2026",
+            },
+            program_name: {
+              type: "string",
+              description:
+                "The student's major/program name, e.g. 'Computer Science Engineering'. " +
+                "Pass this whenever the student has mentioned their major in the conversation.",
             },
             target_credits: {
-                type: "number",
-                description: "Target credit hours, default 15",
+              type: "number",
+              description: "Target credit hours, default 15",
             },
             avoid_mornings: {
-                type: "boolean",
-                description: "If true, no classes before 10am",
+              type: "boolean",
+              description: "If true, no classes before 10am",
             },
             free_fridays: {
-                type: "boolean",
-                description: "If true, no Friday classes",
+              type: "boolean",
+              description: "If true, no Friday classes",
             },
             max_workload_percent: {
-                type: "number",
-                description: "Maximum workload percent per course (0-100). Omit for no limit.",
+              type: "number",
+              description: "Maximum workload percent per course (0-100). Omit for no limit.",
             },
-            },
-            required: ["user_id", "term"],
+          },
+          required: ["user_id", "term"],
         },
-        },
+      },
     ],
   },
 ];
@@ -424,35 +431,6 @@ export async function executeTool(
       return { requirement_check: summary };
     }
 
-    case "build_schedule": {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-        const resp = await fetch(`${baseUrl}/api/schedule`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-            userId: input.user_id,
-            term: input.term,
-            targetCredits: input.target_credits ?? 15,
-            preferences: {
-                avoidMornings: input.avoid_mornings ?? false,
-                freeFridays: input.free_fridays ?? false,
-                maxWorkloadPercent: input.max_workload_percent,
-            },
-            }),
-        });
-
-        const data = await resp.json();
-        if (!resp.ok) {
-            return { error: data.error ?? "Failed to build schedule" };
-        }
-
-        return {
-            success: true,
-            message: "Schedule built successfully. The weekly calendar has been updated.",
-            schedule: data.schedule,
-        };
-        }
-
     // ── get_program_requirements ──────────────────────────────────────────────
     case "get_program_requirements": {
       const filter: Record<string, unknown> = {
@@ -531,7 +509,6 @@ export async function executeTool(
       for (let i = 0; i < courses.length; i++) {
         for (let j = i + 1; j < courses.length; j++) {
           const a = courses[i], b = courses[j];
-          // sections use camelCase per Prisma schema
           const aLecs = (a.sections ?? []).filter((s: { sectionType?: string }) => s.sectionType === "LEC");
           const bLecs = (b.sections ?? []).filter((s: { sectionType?: string }) => s.sectionType === "LEC");
 
@@ -568,6 +545,37 @@ export async function executeTool(
         message: conflicts.length === 0
           ? `✅ No conflicts among: ${courseCodes.join(", ")}`
           : `⚠️ ${conflicts.length} conflict(s) detected`,
+      };
+    }
+
+    // ── build_schedule ────────────────────────────────────────────────────────
+    case "build_schedule": {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+      const resp = await fetch(`${baseUrl}/api/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: input.user_id,
+          term: input.term,
+          targetCredits: input.target_credits ?? 15,
+          programName: input.program_name,
+          preferences: {
+            avoidMornings: input.avoid_mornings ?? false,
+            freeFridays: input.free_fridays ?? false,
+            maxWorkloadPercent: input.max_workload_percent,
+          },
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        return { error: data.error ?? "Failed to build schedule" };
+      }
+
+      return {
+        success: true,
+        message: "Schedule built successfully. The weekly calendar panel has been updated.",
+        schedule: data.schedule,
       };
     }
 

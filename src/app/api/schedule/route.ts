@@ -543,10 +543,12 @@ export async function POST(req: NextRequest) {
       term,
       targetCredits = 15,
       preferences = {},
+      programName,
     } = await req.json() as {
       userId: string;
       term: string;
       targetCredits?: number;
+      programName?: string;
       preferences?: {
         avoidMornings?: boolean;
         freeFridays?: boolean;
@@ -585,9 +587,17 @@ export async function POST(req: NextRequest) {
         .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
     }
 
+    // Fallback: look up by name if chat passed programName and no enrolled programs in DB
+    if (programs.length === 0 && programName) {
+      programs = await db
+        .collection("programs")
+        .find({ programName: { $regex: programName, $options: "i" } })
+        .toArray() as unknown as { programName: string; requirementBlocks: RequirementBlock[] }[];
+    }
+
     if (programs.length === 0) {
       return NextResponse.json({
-        error: "No enrolled programs found. Please select your major first.",
+        error: "No program found. Please tell me your major (e.g. 'Computer Science Engineering') so I can look up the requirements.",
       }, { status: 400 });
     }
 
