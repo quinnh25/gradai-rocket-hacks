@@ -91,7 +91,7 @@ Guidelines:
 - Consider workload percent when recommending course loads (a full semester is typically 14-16 credits)
 - If a prerequisite chain is incomplete, flag it clearly
 - Format your final response in a clear, structured way using markdown
-- Term code 2610 = Winter 2026 (the current/upcoming term)`,
+- Term code 2570 = Winter, Term code 2610 = Fall: make sure that your term recommendations align with course availability`,
           },
         ],
       },
