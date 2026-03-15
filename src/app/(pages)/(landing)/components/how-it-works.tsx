@@ -10,7 +10,7 @@ const steps = [
     icon: FileText,
     title: "Import your transcript",
     description:
-      "Connect your UMich account or upload your transcript. We figure out exactly where you stand.",
+      "Log in and upload your transcript. We figure out exactly where you stand.",
     accent: "bg-primary/10 text-primary",
   },
   {
@@ -18,7 +18,7 @@ const steps = [
     icon: Lightbulb,
     title: "Tell us what excites you",
     description:
-      "Pick topics, career paths, or vibes. Our AI matches interests with courses that fulfill requirements.",
+      "Pick topics, career paths, major(s), minor(s), or vibes. Our AI matches interests with courses that fulfill requirements.",
     accent: "bg-accent text-accent-foreground",
   },
   {
@@ -26,7 +26,7 @@ const steps = [
     icon: Rocket,
     title: "Build your schedule",
     description:
-      "Get a personalized semester plan. Drag, drop, swap — and register directly through our integration.",
+      "Get a personalized semester by semester plan. Drag, drop, swap — and export to Wolverine Access.",
     accent: "bg-primary/10 text-primary",
   },
 ];
@@ -143,7 +143,7 @@ export default function HowItWorks() {
             }}
             className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
           >
-            Three steps to your best semester
+          Three steps to your optimal college experience
           </motion.h2>
         </div>
 

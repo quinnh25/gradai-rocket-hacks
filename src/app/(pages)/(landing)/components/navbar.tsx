@@ -12,7 +12,7 @@ import { authClient } from "@/lib/auth/client";
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "About", href: "#about" },
+  { label: "About", href: "/about" },
 ];
 
 export default function Navbar() {

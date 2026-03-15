@@ -21,10 +21,10 @@ const features: {
     icon: BrainCircuit,
     title: "AI Course Matching",
     description:
-      "Tell us your interests and major — we surface courses you'll enjoy that satisfy your requirements.",
+      "Tell us your interests, major(s), and minor(s). We surface courses you'll enjoy that satisfy your requirements.",
     visual: (
       <div className="mt-5 flex flex-wrap gap-2">
-        {["Machine Learning", "Ethics", "Design", "Systems", "Data Viz", "HCI"].map((tag, i) => (
+        {["Machine Learning", "Bioinformatics", "NLP", "Data Viz", "Geology", "Behavioral Economics", "Quantitative Linguistics", "HCI"].map((tag, i) => (
           <motion.span
             key={tag}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -43,7 +43,7 @@ const features: {
     icon: Route,
     title: "Graduation Roadmap",
     description:
-      "Your entire degree path laid out semester by semester. No more surprises about missing prerequisites.",
+      "Your entire program path laid out semester by semester. No more surprises about missing prerequisites.",
     visual: (
       <div className="mt-5 flex items-end gap-2">
         <div className="flex items-end gap-1.5">
@@ -75,8 +75,8 @@ const features: {
     icon: CalendarCheck,
     title: "Smart Scheduling",
     description:
-      "Build conflict-free schedules in seconds. We factor in professor ratings, time preferences, and workload balance.",
-    visual: (
+      "Build conflict-free schedules in seconds. We factor in course availability, time preferences, and workload balance.",
+visual: (
       <div className="mt-5 grid grid-cols-5 gap-1.5">
         {Array.from({ length: 25 }).map((_, i) => {
           const highlighted = [2, 7, 8, 12, 17, 18, 22].includes(i);
@@ -96,37 +96,54 @@ const features: {
   },
   {
     icon: Zap,
-    title: "Real-Time Sync",
+    title: "Fast-Track Your Degree",
     description:
-      "Fully integrated with UMich systems. Course availability changes are reflected the instant they happen.",
+      "We take complicated double-counting rules and turn them into a simple, streamlined path to graduation.",
     visual: (
-      <div className="mt-5 flex items-center gap-3">
-        <div className="flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/5 px-2.5 py-1">
+      <div className="mt-5 space-y-2">
+        {[
+          { label: "MechE Core", course: "MATH 216", },
+          { label: "Math Minor Requirement", course: "MATH 216", },
+          { label: "AI Minor Requirement", course: "MATH 216", },
+        ].map((req, i) => (
           <motion.div
-            animate={{ scale: [1, 1.4, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="size-2 shrink-0 rounded-full bg-green-500"
-          />
-          <span className="text-xs font-medium text-green-700">Live</span>
-        </div>
-        <div className="flex items-end gap-1">
-          {[0.3, 0.6, 0.4, 0.8, 0.5, 0.9, 0.7, 0.4, 0.6, 0.8, 0.3, 0.7].map((h, i) => (
-            <motion.div
-              key={i}
-              initial={{ scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 + i * 0.04, type: "spring", stiffness: 200, damping: 12 }}
-              className="w-2 origin-bottom rounded-full bg-primary/40"
-              style={{ height: h * 28 }}
-            />
-          ))}
-        </div>
+            key={i}
+            initial={{ opacity: 0, x: -10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 + i * 0.15, type: "spring", stiffness: 200, damping: 18 }}
+            className="flex items-center justify-between rounded-lg border border-primary/10 bg-primary/5 px-3 py-2"
+          >
+            <span className="text-xs text-muted-foreground font-medium">{req.label}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-primary font-semibold">{req.course}</span>
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 + i * 0.15, type: "spring", stiffness: 300, damping: 15 }}
+                className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"
+              >
+                <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
+            </div>
+          </motion.div>
+        ))}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.85 }}
+          className="text-center text-xs text-green-600 font-medium pt-1"
+        >
+          1 course → 3 requirements satisfied
+        </motion.p>
       </div>
     ),
   },
 ];
-
 function FeatureCard({
   feature,
   index,
