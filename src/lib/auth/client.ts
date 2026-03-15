@@ -1,6 +1,8 @@
-import { createAuthClient } from "better-auth/react"
+import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-    // Make sure it uses the env variable, NOT a hardcoded "http://localhost:3000"
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL 
-})
+    // This forces it to use Vercel in production, and localhost on your computer
+    baseURL: process.env.NODE_ENV === "development" 
+        ? "http://localhost:3000" 
+        : "https://gradai-rocket-hacks.vercel.app" 
+});
