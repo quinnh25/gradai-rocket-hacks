@@ -1225,5 +1225,301 @@
                 "rules_and_restrictions": "Other courses may be acceptable with prior approval of the Chief Program Advisor. The basic standard is that a class you are proposing as an FTE should involve at least as much technical content as the options on this list. A rough guideline is that it should involve the use of college-level mathematics. If little mathematics beyond arithmetic or basic algebra is involved, it is unlikely to be approved. All tutoring and seminar courses are excluded. Up to 4 credit hours of independent study (EECS 399, EECS 499, ENGR 355, ENGR 455 or other technical department's independent study courses) may be used as Flexible Technical Electives. ENGR 455 credits approved to fulfill the Major Design Experience requirement are exempt from this Directed Study Rule, meaning if ENGR 455 is used to satisfy your MDE checkbox, you can use 4 credits of ENGR 455 as well as up to 4 credits of Directed Study coursework toward your Flexible Technical Electives. For AEROSP, BIOLOGY, BIOMEDE, CHE, CEE, Climate, MECHENG, MCDB, NAVARCH, NERS, Physics, Space, IOE: Any 300-level and above courses are generally acceptable, with specific exclusions for some departments. For MATH: Any class at the 300-level or higher (except MATH 310, MATH 327, MATH 333, MATH 385, MATH 389, MATH 399, MATH 422, MATH 429, MATH 431, MATH 485, MATH 486, MATH 489, MATH 497). Students can only receive credit for one linear algebra course. For EECS: Any 300-level or above (except EECS 314, EECS 402, EECS 403, EECS 406, EECS 409, EECS 410 and EECS 495). EECS 281 may only be used toward FTEs if other courses are used to fulfill the Core Electives area - EECS 281 cannot count in two spots. Technical elective credits can 'flow down' from previous categories."
             }
         ]
+    },
+    {
+        "program_name": "Civil Engineering",
+        "program_type": "Major",
+        "college": "College of Engineering",
+        "academic_year": "2025-2026",
+        "overall_total_credits": 128,
+        "requirement_blocks": [
+            {
+                "block_name": "Subjects Required by all Programs",
+                "credits_required_for_block": 55,
+                "mandatory_courses": [
+                    "MATH 115",
+                    "MATH 116",
+                    "MATH 215",
+                    "MATH 216",
+                    "ENGR 100",
+                    "ENGR 101",
+                    "PHYSICS 140",
+                    "PHYSICS 141",
+                    "PHYSICS 240",
+                    "PHYSICS 241"
+                ],
+                "elective_options": [
+                    "CHEM 130",
+                    "CHEM 125",
+                    "CHEM 126",
+                    "CHEM 210",
+                    "CHEM 211"
+                ],
+                "rules_and_restrictions": "Note 1: Students must take CHEM 130 and CHEM 125/126 OR CHEM 210 and CHEM 211. If you have a satisfactory score or grade in Chemistry AP, A-Level, IB Exams, or transfer credit from another institution for CHEM 130/125/126, you will have met the Chemistry Core Requirement. Note 2: If you have a satisfactory score or grade in Physics AP, A-Level, IB Exams, or transfer credit from another institution for PHYSICS 140/141 and 240/241, you will have met the Physics Core."
+            },
+            {
+                "block_name": "Intellectual Breadth",
+                "credits_required_for_block": 16,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "ECON 101",
+                    "ECON 102"
+                ],
+                "rules_and_restrictions": "Includes ECON 101 or 102. Other courses not specified in this document."
+            },
+            {
+                "block_name": "Mathematical Methods",
+                "credits_required_for_block": 7,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [
+                    "CEE 303",
+                    "CEE 373"
+                ],
+                "elective_options": [],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus."
+            },
+            {
+                "block_name": "Required Program Subjects",
+                "credits_required_for_block": 22,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [
+                    "CEE 200",
+                    "CEE 211",
+                    "CEE 212",
+                    "CEE 265",
+                    "CEE 325",
+                    "CEE 402"
+                ],
+                "elective_options": [
+                    "CEE 230",
+                    "CEE 375"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Students must take CEE 230 OR CEE 375. Note 3: CEE may accept equivalent courses offered by other departments in the College of Engineering, with permission from the program advisor. Note 8: CEE 402 must be taken in the last Winter semester."
+            },
+            {
+                "block_name": "Science Elective",
+                "credits_required_for_block": 3,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "BIOLOGY 171",
+                    "BIOLOGY 172",
+                    "EARTH 119",
+                    "EARTH 201",
+                    "EARTH 222",
+                    "EARTH 284",
+                    "EARTH 320",
+                    "CEE 482",
+                    "CEE 582"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus."
+            },
+            {
+                "block_name": "Program Electives",
+                "credits_required_for_block": 20,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "CEE 312",
+                    "CEE 331",
+                    "CEE 345",
+                    "CEE 351",
+                    "CEE 365",
+                    "CEE 421",
+                    "CEE 450"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Note 4: At least five of the seven program electives are required. Note 5: A sixth program elective may count as a technical elective."
+            },
+            {
+                "block_name": "Technical Electives",
+                "credits_required_for_block": 9,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "CEE 435",
+                    "CEE 531",
+                    "CEE 534",
+                    "CEE 537",
+                    "CEE 465",
+                    "CEE 480",
+                    "CEE 563",
+                    "CEE 567",
+                    "CEE 540",
+                    "CEE 545",
+                    "CEE 546",
+                    "CEE 548",
+                    "CEE 501.076",
+                    "CEE 428",
+                    "CEE 521",
+                    "CEE 526",
+                    "CEE 527",
+                    "CEE 575",
+                    "CEE 547",
+                    "CEE 412",
+                    "CEE 413",
+                    "CEE 415",
+                    "CEE 551",
+                    "CEE 552"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Note 5: A sixth program elective may count as a technical elective. Note 6: At least one of the three technical electives must be a design course (design courses are marked with an *). Note 7: CEE may accept study abroad courses as a technical elective with prior approval of the department."
+            },
+            {
+                "block_name": "General Electives",
+                "credits_required_for_block": 12,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [],
+                "rules_and_restrictions": "No specific courses listed in this document."
+            }
+        ]
+    },
+    {
+        "program_name": "Civil Engineering",
+        "program_type": "Major",
+        "college": "College of Engineering",
+        "academic_year": "2025-2026",
+        "overall_total_credits": 128,
+        "requirement_blocks": [
+            {
+                "block_name": "Subjects Required by all Programs",
+                "credits_required_for_block": 55,
+                "mandatory_courses": [
+                    "MATH 115",
+                    "MATH 116",
+                    "MATH 215",
+                    "MATH 216",
+                    "ENGR 100",
+                    "ENGR 101",
+                    "PHYSICS 140",
+                    "PHYSICS 141",
+                    "PHYSICS 240",
+                    "PHYSICS 241"
+                ],
+                "elective_options": [
+                    "CHEM 130",
+                    "CHEM 125",
+                    "CHEM 126",
+                    "CHEM 210",
+                    "CHEM 211"
+                ],
+                "rules_and_restrictions": "Note 1: Students must take CHEM 130 and CHEM 125/126 OR CHEM 210 and CHEM 211. If you have a satisfactory score or grade in Chemistry AP, A-Level, IB Exams, or transfer credit from another institution for CHEM 130/125/126, you will have met the Chemistry Core Requirement. Note 2: If you have a satisfactory score or grade in Physics AP, A-Level, IB Exams, or transfer credit from another institution for PHYSICS 140/141 and 240/241, you will have met the Physics Core."
+            },
+            {
+                "block_name": "Intellectual Breadth",
+                "credits_required_for_block": 16,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "ECON 101",
+                    "ECON 102"
+                ],
+                "rules_and_restrictions": "Includes ECON 101 or 102. Other courses not specified in this document."
+            },
+            {
+                "block_name": "Mathematical Methods",
+                "credits_required_for_block": 7,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [
+                    "CEE 303",
+                    "CEE 373"
+                ],
+                "elective_options": [],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus."
+            },
+            {
+                "block_name": "Required Program Subjects",
+                "credits_required_for_block": 22,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [
+                    "CEE 200",
+                    "CEE 211",
+                    "CEE 212",
+                    "CEE 265",
+                    "CEE 325",
+                    "CEE 402"
+                ],
+                "elective_options": [
+                    "CEE 230",
+                    "CEE 375"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Students must take CEE 230 OR CEE 375. Note 3: CEE may accept equivalent courses offered by other departments in the College of Engineering, with permission from the program advisor. Note 8: CEE 402 must be taken in the last Winter semester."
+            },
+            {
+                "block_name": "Science Elective",
+                "credits_required_for_block": 3,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "BIOLOGY 171",
+                    "BIOLOGY 172",
+                    "EARTH 119",
+                    "EARTH 201",
+                    "EARTH 222",
+                    "EARTH 284",
+                    "EARTH 320",
+                    "CEE 482",
+                    "CEE 582"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus."
+            },
+            {
+                "block_name": "Program Electives",
+                "credits_required_for_block": 20,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "CEE 312",
+                    "CEE 331",
+                    "CEE 345",
+                    "CEE 351",
+                    "CEE 365",
+                    "CEE 421",
+                    "CEE 450"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Note 4: At least five of the seven program electives are required. Note 5: A sixth program elective may count as a technical elective."
+            },
+            {
+                "block_name": "Technical Electives",
+                "credits_required_for_block": 9,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [
+                    "CEE 435",
+                    "CEE 531",
+                    "CEE 534",
+                    "CEE 537",
+                    "CEE 465",
+                    "CEE 480",
+                    "CEE 563",
+                    "CEE 567",
+                    "CEE 540",
+                    "CEE 545",
+                    "CEE 546",
+                    "CEE 548",
+                    "CEE 501.076",
+                    "CEE 428",
+                    "CEE 521",
+                    "CEE 526",
+                    "CEE 527",
+                    "CEE 575",
+                    "CEE 547",
+                    "CEE 412",
+                    "CEE 413",
+                    "CEE 415",
+                    "CEE 551",
+                    "CEE 552"
+                ],
+                "rules_and_restrictions": "Civil Engineering students must earn a C- or better in all courses whose categories are marked with a plus. Note 5: A sixth program elective may count as a technical elective. Note 6: At least one of the three technical electives must be a design course (design courses are marked with an *). Note 7: CEE may accept study abroad courses as a technical elective with prior approval of the department."
+            },
+            {
+                "block_name": "General Electives",
+                "credits_required_for_block": 12,
+                "courses_required_for_block": 0,
+                "mandatory_courses": [],
+                "elective_options": [],
+                "rules_and_restrictions": "No specific courses listed in this document."
+            }
+        ]
     }
 ]

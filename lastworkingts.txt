@@ -251,204 +251,33 @@ def slim_course_for_ai(code: str, data: dict) -> dict:
     }
 
 
-# Priority tiers sent to Gemini so it knows what to pick first
-def score_block_urgency(block: dict, completed: set) -> float:
-    """
-    Compute a 0-1 urgency score for a requirement block using only its
-    structural properties — no keyword matching, works for any college/major.
-
-    High urgency (close to 1.0) = block has many mandatory courses and few
-    or no choices, meaning the student has little flexibility and must take
-    these courses to make degree progress.
-
-    Low urgency (close to 0.0) = block is a large pick-N-from-M elective
-    pool, meaning the student has many options and can defer.
-
-    Formula components:
-      mandatory_ratio  — fraction of total block courses that are mandatory
-                         (not elective). All-mandatory blocks score 1.0 here.
-      choice_pressure  — how many courses the block REQUIRES vs how many
-                         options exist. e.g. "pick 2 of 20" scores low;
-                         "take all 6" scores high.
-      completion_gap   — fraction of required block credits not yet earned.
-                         A block the student has barely started scores higher.
-    """
-    mandatory = [c for c in block.get("mandatory_courses", [])
-                 if isinstance(c, str) and c not in completed]
-    elective  = [c for c in block.get("elective_options", [])
-                 if isinstance(c, str) and c not in completed]
-
-    total_options = len(mandatory) + len(elective)
-    if total_options == 0:
-        return 0.0  # block already satisfied or has no courses
-
-    # How mandatory is this block?  1.0 = fully mandatory, 0.0 = fully elective
-    mandatory_ratio = len(mandatory) / total_options
-
-    # How much choice pressure exists?
-    # courses_required_for_block = 0 means "take everything mandatory"
-    n_required = block.get("courses_required_for_block", 0)
-    if n_required > 0 and total_options > 0:
-        choice_pressure = min(n_required / total_options, 1.0)
-    else:
-        # No explicit count — if all mandatory, full pressure; else low
-        choice_pressure = 1.0 if len(elective) == 0 else 0.3
-
-    # Completion gap — how far through this block is the student?
-    credits_required = block.get("credits_required_for_block", 0)
-    # We don't track credits earned per block, so use remaining course count
-    # as a proxy: more remaining courses = larger gap = higher urgency
-    completion_gap = min(len(mandatory) / max(total_options, 1), 1.0)
-
-    # Weighted combination — mandatory_ratio drives it most
-    score = (mandatory_ratio * 0.5) + (choice_pressure * 0.3) + (completion_gap * 0.2)
-    return round(score, 3)
-
-
-def score_all_blocks(major_rules: dict, completed: set) -> list:
-    """
-    Return all requirement blocks sorted by urgency score descending.
-    Each entry: {block_name, urgency, mandatory_courses, elective_options,
-                 credits_required, courses_required}
-    """
-    scored = []
-    for block in major_rules.get("requirement_blocks", []):
-        urgency = score_block_urgency(block, completed)
-        if urgency == 0.0:
-            continue  # skip satisfied/empty blocks
-        scored.append({
-            "block_name":       block.get("block_name", "Unknown"),
-            "urgency":          urgency,
-            "credits_required": block.get("credits_required_for_block", 0),
-            "courses_required": block.get("courses_required_for_block", 0),
-            "mandatory":        [c for c in block.get("mandatory_courses", [])
-                                 if isinstance(c, str) and c not in completed],
-            "elective_options": [c for c in block.get("elective_options", [])
-                                 if isinstance(c, str) and c not in completed],
-        })
-    scored.sort(key=lambda b: b["urgency"], reverse=True)
-    return scored
-
-
-def build_course_metadata(scored_blocks: list) -> tuple:
-    """
-    From the urgency-sorted block list, produce:
-      priority_map  — {course_code: urgency_score}  (highest score = pick first)
-      block_map     — {course_code: block_name}
-    Mandatory courses get the block's full urgency score.
-    Elective options get the block urgency * 0.6 (lower priority than mandatory).
-    """
-    priority_map = {}
-    block_map    = {}
-    for block in scored_blocks:
-        bname   = block["block_name"]
-        urgency = block["urgency"]
-        for code in block["mandatory"]:
-            # Take the highest urgency if a course appears in multiple blocks
-            if code not in priority_map or urgency > priority_map[code]:
-                priority_map[code] = urgency
-                block_map[code]    = bname
-        for code in block["elective_options"]:
-            elective_urgency = round(urgency * 0.6, 3)
-            if code not in priority_map or elective_urgency > priority_map[code]:
-                priority_map[code] = elective_urgency
-                block_map[code]    = bname
-    return priority_map, block_map
-
-
-def is_light_lsa_filler(code: str, data: dict, max_wl: float = 40.0) -> bool:
-    """
-    True if a course is a good low-workload LSA filler (usable as IB credit).
-    Entirely structural — checks school code and workload, no keyword matching.
-    Works regardless of which college the student's major is in.
-    """
-    # Skip engineering / math / science departments — they're never light fillers
-    dept_prefix = code.split()[0] if " " in code else code[:4]
-    heavy_depts = {
-        "EECS","CEE","ENGR","MATH","PHYSICS","CHEM","BIOMEDE","MECHENG",
-        "AEROSP","MATSCIE","NAVARCH","NERS","IOE","ROB","CHE","EARTH",
-        "STATS","DATASCI","BIOINF","BIOLOGY","MCDB","CMPLXSYS",
-    }
-    if dept_prefix in heavy_depts:
-        return False
-    school = data.get("school_code", "").upper()
-    if school not in ("LSA", "SMTD", "KINES", "SOE"):
-        return False
-    raw_wl = data.get("metrics", {}).get("workload_percent", None)
-    try:
-        return float(raw_wl) <= max_wl
-    except (ValueError, TypeError):
-        return False  # unknown workload — don't assume it's light
-
-
 def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) -> dict:
-    """
-    Return raw catalog entries for:
-      1. Courses the student still needs (from major rules), sorted by urgency.
-      2. Light LSA filler courses usable as IB/breadth credits.
-
-    Attaches a "_meta" key with:
-      priority_map  — {code: urgency_score}  (used to sort Gemini's candidates)
-      block_map     — {code: block_name}
-      scored_blocks — urgency-ranked block list (sent to Gemini as context)
-      filler_codes  — set of IB/breadth filler course codes
-    """
+    """Return raw catalog entries only for courses the student still needs,
+    within workload limit, with at least one open section."""
     completed    = set(user_profile.get("completed_courses", []))
-    max_workload = user_profile.get("preferences", {}).get(
-        "max_workload_percent_per_class", 100)
-    filler_wl    = user_profile.get("preferences", {}).get(
-        "max_filler_workload", 40)  # separate cap for filler courses
+    max_workload = user_profile.get("preferences", {}).get("max_workload_percent_per_class", 100)
+    needed_codes = extract_needed_course_codes(major_rules, completed)
+    print(f"   Courses still needed by major rules : {len(needed_codes)}")
 
-    # ── Score and rank requirement blocks structurally ──
-    scored_blocks = score_all_blocks(major_rules, completed)
-    priority_map, block_map = build_course_metadata(scored_blocks)
-
-    print(f"   Requirement blocks ranked by urgency:")
-    for b in scored_blocks[:6]:  # show top 6
-        print(f"     [{b['urgency']:.2f}] {b['block_name']}  "
-              f"({len(b['mandatory'])} mandatory, {len(b['elective_options'])} elective options)")
-
-    filtered     = {}
-    filler_codes = set()
-
-    def try_add(code, data, wl_cap):
+    filtered = {}
+    for code in needed_codes:
+        if code not in catalog_db:
+            continue
+        data = catalog_db[code]
         raw_wl = data.get("metrics", {}).get("workload_percent", 0)
         try:
-            if float(raw_wl) > wl_cap:
-                return False
+            if float(raw_wl) > max_workload:
+                continue
         except (ValueError, TypeError):
-            pass  # unknown workload — keep it
-        open_secs = [s for s in data.get("availability", []) if s.get("Status") == "Open"]
-        if not open_secs:
-            return False
-        entry = data.copy()
-        entry["availability"] = open_secs
-        filtered[code] = entry
-        return True
-
-    # Add major-required courses
-    for code in priority_map:
-        if code in catalog_db:
-            try_add(code, catalog_db[code], max_workload)
-
-    # Add light LSA filler courses (IB breadth candidates)
-    for code, data in catalog_db.items():
-        if code in filtered or code in completed:
+            pass
+        open_sections = [s for s in data.get("availability", []) if s.get("Status") == "Open"]
+        if not open_sections:
             continue
-        if is_light_lsa_filler(code, data, max_wl=filler_wl):
-            if try_add(code, data, filler_wl):
-                filler_codes.add(code)
+        entry = data.copy()
+        entry["availability"] = open_sections
+        filtered[code] = entry
 
-    major_count  = len(filtered) - len(filler_codes)
-    print(f"   Courses available this term : {len(filtered)} "
-          f"({major_count} major-required, {len(filler_codes)} breadth fillers)")
-
-    filtered["_meta"] = {
-        "priority_map":  priority_map,
-        "block_map":     block_map,
-        "scored_blocks": scored_blocks,
-        "filler_codes":  list(filler_codes),
-    }
+    print(f"   Courses available in catalog this term : {len(filtered)}")
     return filtered
 
 
@@ -459,116 +288,62 @@ def pre_filter_catalog(user_profile: dict, major_rules: dict, catalog_db: dict) 
 SELECTION_SYSTEM = """
 You are an Academic Requirements Advisor for the University of Michigan.
 
-Your ONLY job is to select which courses the student should take this term.
-A separate Python algorithm handles time conflicts — ignore scheduling entirely.
+Your ONLY job is to choose which courses the student should take this term to
+make progress on their degree. A separate Python scheduling algorithm will
+handle time conflicts — you do NOT need to think about times at all.
 
-You will receive a ranked list of requirement blocks (ranked_requirement_blocks),
-sorted by URGENCY SCORE from highest to lowest. Urgency is computed structurally:
-blocks with all-mandatory courses and no elective choice score highest; large
-pick-N-from-M elective pools score lowest. This ranking works for ANY major at
-ANY college — you do not need to know what the courses are called.
-
-=== SELECTION PROCESS (follow in order) ===
-
-STEP 1 — Work through ranked_requirement_blocks from top to bottom (highest
-urgency first). For each block, pick the mandatory courses first. Only pick
-elective_options from that block if mandatory courses are exhausted or already
-completed. Do NOT skip to a lower-urgency block while a higher-urgency block
-still has uncovered mandatory courses.
-
-STEP 2 — After covering the highest-urgency blocks, if credits remain, add
-1-2 breadth filler courses (is_filler: true in candidate_courses). These are
-light LSA courses that bring the average workload down and count toward
-graduation. Use them as balancing tools, not as primary selections.
-
-STEP 3 — Only fill remaining credit slots with elective options if Steps 1-2
-did not reach target_credits.
-
-=== HARD RULES ===
+RULES:
 1. Never recommend a course the student has already completed.
-2. Never exceed max_workload_per_class for any individual course.
-3. Reach approximately target_credits total.
-4. Only pick courses present in candidate_courses.
-5. BREADTH: select from at least 3 different requirement blocks before
-   picking a second course from any single block.
-6. If conflicting_courses is provided, avoid ALL of them and substitute
-   with alternatives from the same or adjacent urgency-ranked blocks.
+2. Respect max_workload_percent_per_class.
+3. Select enough courses to reach approximately target_credits_this_term.
+4. Prefer mandatory/core courses over open electives.
+5. Only pick courses from the provided candidate_courses list.
+6. If conflicting_courses is provided, those courses caused scheduling
+   conflicts last round — avoid them and pick alternatives instead.
 
 OUTPUT: strictly valid JSON, no markdown fences.
 {
     "selections": [
         {
-            "course_code": "MATH 215",
-            "course_title": "Calculus III",
+            "course_code": "EECS 280",
+            "course_title": "Programming and Data Structures",
             "credits": 4,
-            "workload_percent": 55,
-            "urgency_score": 0.85,
-            "requirement_block": "Subjects Required by all Programs",
-            "is_filler": false,
-            "reasoning": "Highest-urgency block; mandatory course with no elective substitutes."
+            "workload_percent": 45,
+            "requirement_fulfilled": "CE Program Core",
+            "reasoning": "One-line rationale."
         }
     ],
-    "notes": "Optional caveats about tradeoffs or missing requirements."
+    "notes": "Optional caveats about missing requirements."
 }
 """
 
 def gemini_select_courses(user_profile: dict, filtered_catalog: dict,
                            conflicting_courses=None) -> dict:
-    meta          = filtered_catalog.get("_meta", {})
-    priority_map  = meta.get("priority_map", {})   # {code: urgency_score float}
-    block_map     = meta.get("block_map", {})       # {code: block_name}
-    scored_blocks = meta.get("scored_blocks", [])   # urgency-sorted block list
-    filler_codes  = set(meta.get("filler_codes", []))
-
-    # Build slim catalog annotated with urgency score and filler flag
-    slim_catalog = {}
-    for code, data in filtered_catalog.items():
-        if code == "_meta":
-            continue
-        entry = slim_course_for_ai(code, data)
-        entry["urgency_score"]     = priority_map.get(code, 0.0)
-        entry["requirement_block"] = block_map.get(code, "Breadth / Filler")
-        entry["is_filler"]         = code in filler_codes
-        slim_catalog[code] = entry
-
-    # Strip section_families from filler courses to save tokens —
-    # Gemini doesn't need to reason about their times
-    for code in filler_codes:
-        if code in slim_catalog:
-            slim_catalog[code].pop("section_families", None)
-
-    # Pass the urgency-ranked block list so Gemini knows the priority order
-    # without needing to interpret course names or block names
-    ranked_blocks_for_prompt = [
-        {
-            "block_name":        b["block_name"],
-            "urgency":           b["urgency"],
-            "credits_required":  b["credits_required"],
-            "mandatory_courses": b["mandatory"],
-            "elective_options":  b["elective_options"][:10],  # cap to save tokens
-        }
-        for b in scored_blocks
-    ]
+    slim_catalog = {
+        code: slim_course_for_ai(code, data)
+        for code, data in filtered_catalog.items()
+    }
 
     prompt = {
-        "task": "Select courses for this student following the urgency-ranked blocks.",
+        "task": "Select the best courses for this student's degree progress.",
         "student": {
-            "major":              user_profile.get("major"),
-            "completed_courses":  user_profile.get("completed_courses", []),
-            "target_credits":     user_profile.get("target_credits_this_term"),
-            "max_workload_per_class": user_profile.get("preferences", {}).get(
-                "max_workload_percent_per_class", 100),
+            "major":             user_profile.get("major"),
+            "completed_courses": user_profile.get("completed_courses", []),
+            "target_credits":    user_profile.get("target_credits_this_term"),
+            "preferences":       {
+                k: v for k, v in user_profile.get("preferences", {}).items()
+                if k != "custom_blocks"  # not relevant to course selection
+            },
         },
-        "ranked_requirement_blocks": ranked_blocks_for_prompt,
-        "candidate_courses":         slim_catalog,
+        "candidate_courses": slim_catalog,
     }
 
     if conflicting_courses:
         prompt["conflicting_courses"] = conflicting_courses
         prompt["instruction"] = (
-            f"The courses {conflicting_courses} caused unresolvable time conflicts. "
-            "Avoid ALL of them. Substitute with alternatives from the same or "
-            "adjacent urgency-ranked blocks."
+            f"The courses {conflicting_courses} could not be scheduled together "
+            "without time conflicts. Please replace them with alternatives from "
+            "the candidate list that fulfill similar requirements."
         )
 
     response = client.models.generate_content(
@@ -604,7 +379,7 @@ def find_valid_schedule(selected_courses: list, raw_catalog: dict,
     courses_to_schedule = []
     for sel in selected_courses:
         code = sel["course_code"]
-        if code == "_meta" or code not in raw_catalog:
+        if code not in raw_catalog:
             continue
         data     = raw_catalog[code]
         families = group_sections_by_family(data.get("availability", []))
@@ -809,7 +584,7 @@ if __name__ == "__main__":
         "preferences": {
             "max_workload_percent_per_class": 80,
             "avoid_mornings": True,   # blocks 12:00 AM - 10:00 AM, Mon-Fri
-            "free_fridays":   True,   # blocks all day Friday
+            "free_fridays":   False,   # blocks all day Friday
             # Optional custom blocks:
             # "custom_blocks": [
             #     {
