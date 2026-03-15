@@ -3,22 +3,16 @@
  *
  * POST /api/plan
  *
- * Gemini-powered schedule planning endpoint with tool calling (function calling).
- * Uses the Gemini REST API directly — no SDK needed.
+ * Gemini-powered academic planning endpoint with tool calling.
+ * When the student asks for a single-semester schedule, Gemini calls
+ * the build_schedule tool which runs the backtracking scheduler and
+ * returns a ScheduleOutput that gets sent to the weekly calendar panel.
  *
  * Request body:
- *   {
- *     userId: string,          // Better Auth user ID
- *     message: string,         // The student's request
- *     history?: GeminiMessage[] // Prior conversation turns (for multi-turn)
- *   }
+ *   { userId: string, message: string, history?: GeminiMessage[] }
  *
  * Response:
- *   { reply: string }          // The assistant's final text response
- *
- * Environment variables needed:
- *   GEMINI_API_KEY=<your Google AI Studio key>
- *   DATABASE_URL=<your MongoDB Atlas connection string>
+ *   { reply: string, schedule?: ScheduleOutput }
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -28,7 +22,7 @@ import { GEMINI_TOOLS, executeTool } from "@/lib/ai-tools";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const MAX_TOOL_ROUNDS = 25; // Safety cap: max tool-call cycles per request
+const MAX_TOOL_ROUNDS = 20;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,109 +58,110 @@ interface GeminiResponse {
   };
 }
 
+// ─── System Prompt ────────────────────────────────────────────────────────────
+
+const SYSTEM_PROMPT = `You are GradAI, an expert academic planning assistant for University of Michigan students.
+
+Your job is to help students plan their course schedules and degree progress. You have access to 
+the UMich course catalog, program requirements, student transcripts, and a schedule builder via tools.
+
+Core guidelines:
+- Always fetch the student profile first before making recommendations
+- Be specific: cite actual course codes, credit counts, and requirement block names  
+- Consider workload percent when recommending course loads (14-16 credits is typical)
+- Term code 2570 = Winter 2026, Term code 2610 = Fall 2026
+
+━━━ SCHEDULE BUILDING (single semester) ━━━
+
+When a student asks for their schedule for a specific upcoming semester:
+
+Step 1 — Call get_student_profile to understand their completed courses and enrolled programs.
+
+Step 2 — If the student hasn't mentioned preferences, ask them ONE time:
+  "Before I build your schedule, do you have any preferences?
+   - Avoid early morning classes (before 10am)?
+   - Keep Fridays free?
+   - Target credit hours? (default: 15)
+   - Maximum workload per course? (default: no limit)"
+  
+  If they say "no preferences" or "just build it" or similar, proceed with defaults immediately.
+
+Step 3 — Call build_schedule with:
+  - user_id: the student's userId
+  - term: "2570" (Winter 2026) or "2610" (Fall 2026)
+  - target_credits: 15 (or what they specified)
+  - avoid_mornings: true/false
+  - free_fridays: true/false
+  - max_workload_percent: only if they specified a cap
+
+Step 4 — After build_schedule returns, tell the student:
+  - Which courses were selected and why
+  - The total credit load
+  - Any notes about availability or workload
+  - That the visual schedule has been updated in the Weekly Schedule panel
+
+━━━ GRADUATION PLANNING (multi-semester) ━━━
+
+When a student asks about remaining semesters or graduation timeline:
+- Use get_student_profile and check_requirements first
+- Use get_program_requirements to understand remaining courses
+- Verify availability using get_course where possible
+- Output a gradplan-json block after your explanation in this exact format:
+
+\`\`\`gradplan-json
+{
+  "expectedGraduation": "Winter 2028",
+  "totalCreditsRemaining": 88,
+  "semesters": [
+    {
+      "label": "Fall 2026",
+      "totalCredits": 16,
+      "courses": [
+        {
+          "code": "EECS 281",
+          "credits": 4,
+          "requirement": "CS Program Core",
+          "notes": "Prereq: EECS 280 ✅"
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+━━━ ALL OTHER RESPONSES ━━━
+
+Use normal markdown. No JSON blocks needed.`;
+
 // ─── Gemini API Call ──────────────────────────────────────────────────────────
 
 async function callGemini(messages: GeminiMessage[]): Promise<GeminiResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set in environment variables.");
-  }
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set in environment variables.");
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       system_instruction: {
-        parts: [
-          {
-            text: `You are GradAI, an expert academic planning assistant for University of Michigan students.
-
-Your job is to help students plan their course schedules and degree progress. You have access to 
-the UMich course catalog, program requirements, and student transcripts via tools.
-
-Guidelines:
-- Always start by fetching the student's profile and requirements before making recommendations
-- Be specific: cite actual course codes, credit counts, and requirement block names
-- IMPORTANT: Before recommending a course for a specific semester, ALWAYS call get_course to verify 
-  it is available in the correct term. Term codes are: Fall 2026 = 2610, Winter 2026 = 2570.
-  A course is only available in a term if its term field matches AND it has open or waitlisted sections.
-  If a course is not available in the target term, find an alternative or recommend it for a different semester.
-- Check for schedule conflicts when suggesting multiple courses for the same term
-- Consider workload percent when recommending course loads (a full semester is typically 14-16 credits)
-- If a prerequisite chain is incomplete, flag it clearly
-- Term code 2570 = Winter 2026, Term code 2610 = Fall 2026
-
-OUTPUT FORMAT RULES — follow these exactly:
-
-1. When generating any schedule:
-   After your explanation text, append a JSON block in this exact format:
-   \`\`\`schedule-json
-   {
-     "term": "2570",
-     "termLabel": "Winter 2026",
-     "totalCredits": 16,
-     "courses": [
-       {
-         "courseCode": "EECS 281",
-         "title": "Data Structures and Algorithms",
-         "credits": 4,
-         "color": "#3B82F6",
-         "sections": [
-           {
-             "sectionType": "LEC",
-             "sectionNumber": "001",
-             "instructor": "Smith, John",
-             "meetings": [
-               {
-                 "days": ["Tu", "Th"],
-                 "startTime": "10:00",
-                 "endTime": "11:30",
-                 "location": "1013 DOW"
-               }
-             ]
-           }
-         ]
-       }
-     ]
-   }
-   \`\`\`
-   Use these colors in order: #3B82F6, #10B981, #F59E0B, #8B5CF6, #EF4444, #06B6D4, #F97316, #6366F1
-   Get real section times from get_course tool. Use 24hr time format for startTime/endTime.
-   days must be an array of 2-letter codes: "Mo", "Tu", "We", "Th", "Fr"
-
-2. When generating a MULTI-SEMESTER plan (user asks about remaining semesters or graduation plan):
-   Use markdown tables, one per semester. Do NOT include schedule-json blocks.
-   Format each semester as:
-   ### Fall 2026
-   | Course | Credits | Requirement | Notes |
-   |--------|---------|-------------|-------|
-   | EECS 281 | 4 | CS Program Core | Prereq: EECS 280 ✅ |
-
-3. For all other responses: use normal markdown.`,},
-        ],
+        parts: [{ text: SYSTEM_PROMPT }],
       },
       contents: messages,
       tools: GEMINI_TOOLS,
       tool_config: {
-        function_calling_config: {
-          mode: "AUTO", // Gemini decides when to call tools
-        },
+        function_calling_config: { mode: "AUTO" },
       },
       generation_config: {
-        temperature: 0.4,   // Lower = more deterministic planning output
-        max_output_tokens: 32000,
+        temperature: 0.4,
+        max_output_tokens: 8192,
       },
     }),
   });
 
   const data = await response.json() as GeminiResponse;
-
   if (!response.ok || data.error) {
-    throw new Error(
-      `Gemini API error: ${data.error?.message ?? response.statusText}`
-    );
+    throw new Error(`Gemini API error: ${data.error?.message ?? response.statusText}`);
   }
-
   return data;
 }
 
@@ -189,64 +184,62 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Build the conversation: prior history + new user message
     const messages: GeminiMessage[] = [
       ...history,
       {
         role: "user",
-        parts: [
-          {
-            text:
-              `[Student User ID: ${userId}]\n\n${message}`,
-          },
-        ],
+        parts: [{ text: `[Student User ID: ${userId}]\n\n${message}` }],
       },
     ];
 
-    // ── Agentic tool-calling loop ──────────────────────────────────────────
-    // Gemini may request multiple tool calls before producing a final text reply.
-    // We keep looping until it returns a text response (finishReason: "STOP")
-    // or we hit the safety cap.
-
+    // ── Agentic tool-calling loop ─────────────────────────────────────────────
     let rounds = 0;
+    let scheduleData: unknown = null;
 
     while (rounds < MAX_TOOL_ROUNDS) {
       rounds++;
+      console.log(`[GradAI] Round ${rounds}/${MAX_TOOL_ROUNDS}`);
 
       const geminiResponse = await callGemini(messages);
       const candidate = geminiResponse.candidates?.[0];
 
-      if (!candidate) {
-        throw new Error("No response candidate returned from Gemini.");
-      }
+      if (!candidate) throw new Error("No response candidate returned from Gemini.");
 
-      console.log("[GradAI] candidate:", JSON.stringify(candidate, null, 2));
-
-      const { parts, role } = candidate.content;
-      const finishReason = candidate.finishReason;
-
-      // Add the model's response turn to history
+      const { parts } = candidate.content;
       messages.push({ role: "model", parts });
 
-      // Check if this turn contains any function calls
       const functionCalls = parts.filter((p) => p.functionCall);
 
       if (functionCalls.length === 0) {
-        // No tool calls — extract the text reply and return it
+        // No tool calls — extract text and return
         const textPart = parts.find((p) => p.text);
         const reply = textPart?.text ?? "I wasn't able to generate a response. Please try again.";
-        return NextResponse.json({ reply });
+        return NextResponse.json({
+          reply,
+          ...(scheduleData ? { schedule: scheduleData } : {}),
+        });
       }
 
-      // Execute all requested tool calls in parallel
+      // Execute all tool calls in parallel
       const toolResults = await Promise.all(
         functionCalls.map(async (part) => {
           const { name, args } = part.functionCall!;
-          console.log(`[GradAI] Calling tool: ${name}`, args);
+          console.log(`[GradAI] Calling tool: ${name}`, JSON.stringify(args).slice(0, 100));
 
           let result: unknown;
           try {
             result = await executeTool(name, args);
+
+            // Capture schedule if build_schedule was called successfully
+            if (
+              name === "build_schedule" &&
+              typeof result === "object" &&
+              result !== null &&
+              "schedule" in result &&
+              (result as { success?: boolean }).success
+            ) {
+              scheduleData = (result as { schedule: unknown }).schedule;
+            }
           } catch (err) {
             result = {
               error: `Tool execution failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -254,37 +247,27 @@ export async function POST(req: NextRequest) {
           }
 
           return {
-            functionResponse: {
-              name,
-              response: result,
-            },
+            functionResponse: { name, response: result },
           } satisfies GeminiPart;
         })
       );
 
-      // Send tool results back to Gemini as a "user" turn
-      // (Gemini expects function responses in the user role)
-      messages.push({
-        role: "user",
-        parts: toolResults,
-      });
+      // Send tool results back to Gemini
+      messages.push({ role: "user", parts: toolResults });
     }
 
-    // Safety cap hit — return whatever partial response we have
+    // Safety cap hit
     const lastModelTurn = [...messages].reverse().find((m) => m.role === "model");
     const fallbackText = lastModelTurn?.parts.find((p) => p.text)?.text;
 
     return NextResponse.json({
-      reply:
-        fallbackText ??
-        "I'm having trouble completing this request. Please try with a more specific question.",
+      reply: fallbackText ?? "I'm having trouble completing this request. Please try with a more specific question.",
+      ...(scheduleData ? { schedule: scheduleData } : {}),
     });
   } catch (error) {
     console.error("[GradAI /api/plan error]", error);
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Internal server error",
-      },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }

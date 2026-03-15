@@ -81,6 +81,7 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { loadChats(); }, [userId]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -111,15 +112,8 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
         // Restore last schedule data from this chat
         for (let i = msgs.length - 1; i >= 0; i--) {
           if (msgs[i].role === "assistant") {
-            const weekly = extractJson<ScheduleOutput>(msgs[i].content, "schedule-json");
             const grad = extractJson<GradPlanOutput>(msgs[i].content, "gradplan-json");
-            if (weekly || grad) {
-              onScheduleData({
-                ...(weekly ? { weeklySchedule: weekly } : {}),
-                ...(grad ? { gradPlan: grad } : {}),
-              });
-              break;
-            }
+            if (grad) { onScheduleData({ gradPlan: grad }); break; }
           }
         }
       }
@@ -171,19 +165,26 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
         throw new Error(err.error ?? `Server error ${resp.status}`);
       }
 
-      const { reply } = await resp.json() as { reply: string };
+      // Handle both reply text and optional schedule data returned by build_schedule tool
+      const data = await resp.json() as {
+        reply: string;
+        schedule?: ScheduleOutput;
+      };
+      const { reply } = data;
+
+      // If build_schedule tool ran, update the weekly calendar panel
+      if (data.schedule) {
+        onScheduleData({ weeklySchedule: data.schedule });
+      }
+
+      // Also check for gradplan-json embedded in the reply text
+      const grad = extractJson<GradPlanOutput>(reply, "gradplan-json");
+      if (grad) {
+        onScheduleData({ gradPlan: grad });
+      }
+
       const finalMessages = [...newMessages, { role: "assistant" as const, content: reply }];
       setMessages(finalMessages);
-
-      // Fire structured data to parent
-      const weekly = extractJson<ScheduleOutput>(reply, "schedule-json");
-      const grad = extractJson<GradPlanOutput>(reply, "gradplan-json");
-      if (weekly || grad) {
-        onScheduleData({
-          ...(weekly ? { weeklySchedule: weekly } : {}),
-          ...(grad ? { gradPlan: grad } : {}),
-        });
-      }
 
       const title = messageText.slice(0, 60) + (messageText.length > 60 ? "…" : "");
 
@@ -231,12 +232,15 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <div className={`flex flex-col border-r border-gray-100 bg-gray-50 transition-all duration-200 overflow-hidden flex-shrink-0 ${sidebarOpen ? "w-56" : "w-0"}`}>
         {sidebarOpen && (
           <>
             <div className="p-3 border-b border-gray-100">
-              <button onClick={startNewChat} className="w-full flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-semibold hover:bg-blue-700 transition-colors">
+              <button
+                onClick={startNewChat}
+                className="w-full flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-semibold hover:bg-blue-700 transition-colors"
+              >
                 <span className="text-base leading-none">+</span>
                 New Chat
               </button>
@@ -253,7 +257,8 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
                   <div
                     key={chat.id}
                     onClick={() => selectChat(chat.id)}
-                    className={`group relative mx-2 mb-1 rounded-lg px-3 py-2 cursor-pointer transition-colors ${activeChatId === chat.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-100"}`}
+                    className={`group relative mx-2 mb-1 rounded-lg px-3 py-2 cursor-pointer transition-colors
+                      ${activeChatId === chat.id ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-100"}`}
                   >
                     <p className="text-xs font-medium text-gray-700 truncate pr-5">{chat.title}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(chat.updatedAt)} · {chat.messageCount} msgs</p>
@@ -271,10 +276,14 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
         )}
       </div>
 
-      {/* Main */}
+      {/* ── Main ── */}
       <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Topbar */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
-          <button onClick={() => setSidebarOpen((o) => !o)} className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
+          <button
+            onClick={() => setSidebarOpen((o) => !o)}
+            className="text-gray-400 hover:text-gray-600 transition-colors text-sm"
+          >
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <span className="text-xs text-gray-400 font-medium">
@@ -282,6 +291,7 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
           </span>
         </div>
 
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {loadingMessages ? (
             <div className="flex items-center justify-center h-full gap-2 text-gray-400 text-sm">
@@ -293,11 +303,17 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
               <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-2xl">🎓</div>
               <div>
                 <p className="text-sm font-semibold text-gray-700">Ask GradAI anything</p>
-                <p className="text-xs text-gray-400 mt-1">I can check requirements, suggest courses, and build your schedule.</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  I can check requirements, suggest courses, and build your schedule automatically.
+                </p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center mt-2">
                 {SUGGESTED_PROMPTS.map((prompt) => (
-                  <button key={prompt} onClick={() => send(prompt)} className="text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-700 text-gray-600 border border-gray-200 hover:border-blue-200 rounded-full px-3 py-1.5 transition-colors">
+                  <button
+                    key={prompt}
+                    onClick={() => send(prompt)}
+                    className="text-xs bg-gray-100 hover:bg-blue-50 hover:text-blue-700 text-gray-600 border border-gray-200 hover:border-blue-200 rounded-full px-3 py-1.5 transition-colors"
+                  >
                     {prompt}
                   </button>
                 ))}
@@ -307,14 +323,33 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
             messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 {m.role === "assistant" && (
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">G</div>
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0">
+                    G
+                  </div>
                 )}
-                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-blue-600 text-white rounded-br-sm" : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm
+                  ${m.role === "user"
+                    ? "bg-blue-600 text-white rounded-br-sm"
+                    : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                  }`}
+                >
                   {m.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-800 prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:text-xs prose-table:border-collapse prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300 prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300 prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded prose-strong:text-gray-900">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripJsonBlocks(m.content)}</ReactMarkdown>
+                    <div className="prose prose-sm max-w-none
+                      prose-headings:font-bold prose-headings:text-gray-800
+                      prose-p:leading-relaxed prose-p:my-1
+                      prose-ul:my-1 prose-li:my-0.5
+                      prose-table:text-xs prose-table:border-collapse
+                      prose-th:bg-gray-200 prose-th:px-2 prose-th:py-1 prose-th:border prose-th:border-gray-300
+                      prose-td:px-2 prose-td:py-1 prose-td:border prose-td:border-gray-300
+                      prose-code:bg-gray-200 prose-code:px-1 prose-code:rounded
+                      prose-strong:text-gray-900">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {stripJsonBlocks(m.content)}
+                      </ReactMarkdown>
                     </div>
-                  ) : m.content}
+                  ) : (
+                    m.content
+                  )}
                 </div>
               </div>
             ))
@@ -337,6 +372,7 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
           <div ref={bottomRef} />
         </div>
 
+        {/* Input */}
         <div className="border-t border-gray-100 px-4 py-3">
           <div className="flex gap-2 items-end">
             <textarea
@@ -361,7 +397,9 @@ export default function ChatPlanner({ userId, onScheduleData }: ChatPlannerProps
               Send
             </button>
           </div>
-          <p className="text-[10px] text-gray-300 text-center mt-2">Press Enter to send · Shift+Enter for new line</p>
+          <p className="text-[10px] text-gray-300 text-center mt-2">
+            Press Enter to send · Shift+Enter for new line
+          </p>
         </div>
       </div>
     </div>
