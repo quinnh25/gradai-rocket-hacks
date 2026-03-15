@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import ProfileBadge from "./profile-badge";
+import TranscriptUpload from "./Transcriptupload";
 
 export default async function Dashboard() {
   const session = await auth.api.getSession({
@@ -17,15 +18,12 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
-
       <ProfileBadge email={user.email} image={user.image} name={user.name} />
-
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-        
         {user.image ? (
-          <img 
-            src={user.image} 
-            alt={`${user.name}'s profile picture`} 
+          <img
+            src={user.image}
+            alt={`${user.name}'s profile picture`}
             className="mx-auto h-20 w-20 rounded-full border-4 border-green-100 mb-6 shadow-sm"
           />
         ) : (
@@ -37,34 +35,23 @@ export default async function Dashboard() {
         )}
 
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-          Welcome, {user.name?.split(' ')[0]}!
+          Welcome, {user.name?.split(" ")[0]}!
         </h1>
-        
         <p className="text-gray-500 mb-2 font-medium">{user.email}</p>
-
         <p className="text-sm text-green-600 bg-green-50 rounded-full py-1 px-3 inline-block mb-8 border border-green-200">
           ✅ Secure session active
         </p>
 
-        <div className="bg-gray-50 rounded-xl p-5 text-left mb-8 border border-gray-200">
+        {/* Transcript upload */}
+        <div className="bg-gray-50 rounded-xl p-5 text-left mb-4 border border-gray-200">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">
-            Hackathon Next Steps
+            Upload Your Transcript
           </h2>
-          <ul className="space-y-3 text-gray-600 text-sm">
-            <li className="flex items-center line-through opacity-60">
-              <span className="mr-2">🎉</span> Celebrate fixing auth
-            </li>
-            <li className="flex items-center line-through opacity-60">
-              <span className="mr-2">👤</span> Fetch user data (Name & Avatar)
-            </li>
-            <li className="flex items-center text-black font-semibold">
-              <span className="mr-2">🤖</span> Connect the AI Model (Next up!)
-            </li>
-          </ul>
+          <TranscriptUpload />
         </div>
 
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="inline-flex justify-center w-full rounded-lg bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
         >
           Back to Home
