@@ -1,8 +1,11 @@
 /**
  * lib/ai-tools.ts
- * Fixed field names to match actual MongoDB documents:
- *   blockName, creditsRequired, mandatoryCourses, electiveOptions, rules,
- *   programName, programType, totalCredits
+ * Field names match Prisma schema exactly:
+ *   Course: courseId, title, description, credits, department, schoolCode,
+ *           term, workload, prerequisites, sections, tags
+ *   Program: programName, programType, college, totalCredits, requirementBlocks
+ *            blocks: blockName, creditsRequired, mandatoryCourses, electiveOptions, rules
+ *   Student: userId, enrolledPrograms, transcript
  */
 
 import { MongoClient, Db, ObjectId } from "mongodb";
@@ -16,7 +19,7 @@ export const GEMINI_TOOLS = [
         name: "get_course",
         description:
           "Fetch full details for a specific course by its code (e.g. 'EECS 281'). " +
-          "Returns prerequisites, workload, credits, and all section/availability data. " +
+          "Returns prerequisites, workload, credits, and section availability. " +
           "Use this when you need specifics about one course before recommending it.",
         parameters: {
           type: "object",
@@ -158,26 +161,40 @@ export async function executeTool(
     case "get_course": {
       const course = await db
         .collection("courses")
-        .findOne({ course_code: input.course_code as string });
+        .findOne({ courseId: input.course_code as string });
 
       if (!course) {
         return { error: `Course '${input.course_code}' not found.` };
       }
 
       return {
-        course_code: course.course_code,
-        course_title: course.course_title,
-        course_description: course.course_description ?? "",
+        course_code: course.courseId,
+        title: course.title,
+        description: course.description ?? "",
         credits: course.credits,
-        school_code: course.school_code,
+        school_code: course.schoolCode,
         term: course.term,
-        workload_percent: course.metrics?.workload_percent ?? "N/A",
+        workload_percent: course.workload ?? "N/A",
         prerequisites: course.prerequisites ?? { advisory: "N/A", enforced: "N/A" },
-        open_sections: (course.availability ?? []).filter(
-          (s: { EnrollmentStatus?: string; Status?: string }) =>
-            s.EnrollmentStatus === "open" || s.Status === "Open"
+        tags: course.tags ?? [],
+        open_sections: (course.sections ?? []).filter(
+          (s: { enrollmentStatus?: string }) => s.enrollmentStatus === "open"
         ).length,
-        total_sections: (course.availability ?? []).length,
+        total_sections: (course.sections ?? []).length,
+        sections: (course.sections ?? []).slice(0, 5).map((s: {
+          sectionType?: string;
+          enrollmentStatus?: string;
+          availableSeats?: number;
+          meetings?: { days: string; times: string }[];
+        }) => ({
+          section_type: s.sectionType,
+          status: s.enrollmentStatus,
+          available_seats: s.availableSeats,
+          meetings: (s.meetings ?? []).map((m) => ({
+            days: m.days,
+            times: m.times,
+          })),
+        })),
       };
     }
 
@@ -186,12 +203,12 @@ export async function executeTool(
       const filter: Record<string, unknown> = {};
 
       if (input.department) {
-        filter.course_code = { $regex: `^${input.department}\\s`, $options: "i" };
+        filter.courseId = { $regex: `^${input.department}\\s`, $options: "i" };
       }
 
       if (input.keyword) {
         const kw = { $regex: input.keyword as string, $options: "i" };
-        filter.$or = [{ course_title: kw }, { course_description: kw }];
+        filter.$or = [{ title: kw }, { description: kw }];
       }
 
       if (input.min_credits !== undefined || input.max_credits !== undefined) {
@@ -202,8 +219,8 @@ export async function executeTool(
       }
 
       if (Array.isArray(input.exclude_course_codes) && input.exclude_course_codes.length > 0) {
-        filter.course_code = {
-          ...(typeof filter.course_code === "object" ? filter.course_code as object : {}),
+        filter.courseId = {
+          ...(typeof filter.courseId === "object" ? filter.courseId as object : {}),
           $nin: input.exclude_course_codes,
         };
       }
@@ -212,8 +229,8 @@ export async function executeTool(
         .collection("courses")
         .find(filter, {
           projection: {
-            course_code: 1, course_title: 1, credits: 1,
-            "metrics.workload_percent": 1, "prerequisites.enforced": 1, _id: 0,
+            courseId: 1, title: 1, credits: 1, workload: 1,
+            "prerequisites.enforced": 1, tags: 1, _id: 0,
           },
         })
         .limit(20)
@@ -222,11 +239,12 @@ export async function executeTool(
       return {
         count: results.length,
         courses: results.map((c) => ({
-          course_code: c.course_code,
-          course_title: c.course_title,
+          course_code: c.courseId,
+          title: c.title,
           credits: c.credits,
-          workload_percent: c.metrics?.workload_percent ?? "N/A",
+          workload_percent: c.workload ?? "N/A",
           enforced_prereqs: c.prerequisites?.enforced ?? "None",
+          tags: c.tags ?? [],
         })),
       };
     }
@@ -310,15 +328,14 @@ export async function executeTool(
 
       if (programs.length === 0) {
         return {
-          error: "No enrolled programs found for this student. " +
-            "They need to select their major on the dashboard.",
+          error: "No enrolled programs found for this student.",
           transcript_courses: transcript.length,
-          suggestion: "Use get_program_requirements to look up 'Computer Engineering' and plan from there.",
+          completed_courses: transcript.map((c: { course_code: string }) => c.course_code),
+          suggestion: "Use get_program_requirements to look up their intended major and plan from there.",
         };
       }
 
       const summary = programs.map((prog) => {
-        // ← uses camelCase field names matching your actual MongoDB documents
         const blocks = (prog.requirementBlocks ?? []).map((block: {
           blockName: string;
           creditsRequired: number;
@@ -378,7 +395,6 @@ export async function executeTool(
       const program = await db.collection("programs").findOne(filter);
 
       if (!program) {
-        // List available programs to help the AI pick the right name
         const available = await db
           .collection("programs")
           .find({}, { projection: { programName: 1, programType: 1, _id: 0 } })
@@ -394,7 +410,6 @@ export async function executeTool(
         program_type: program.programType,
         college: program.college,
         total_credits_required: program.totalCredits,
-        // ← camelCase to match your actual MongoDB documents
         requirement_blocks: (program.requirementBlocks ?? []).map((b: {
           blockName: string;
           creditsRequired: number;
@@ -417,7 +432,7 @@ export async function executeTool(
 
       const courses = await db
         .collection("courses")
-        .find({ course_code: { $in: courseCodes } })
+        .find({ courseId: { $in: courseCodes } })
         .toArray();
 
       function parseTime(t: string): { start: number; end: number } | null {
@@ -448,23 +463,24 @@ export async function executeTool(
       for (let i = 0; i < courses.length; i++) {
         for (let j = i + 1; j < courses.length; j++) {
           const a = courses[i], b = courses[j];
-          const aLecs = (a.availability ?? []).filter((s: { SectionType?: string }) => s.SectionType === "LEC");
-          const bLecs = (b.availability ?? []).filter((s: { SectionType?: string }) => s.SectionType === "LEC");
+          // sections use camelCase per Prisma schema
+          const aLecs = (a.sections ?? []).filter((s: { sectionType?: string }) => s.sectionType === "LEC");
+          const bLecs = (b.sections ?? []).filter((s: { sectionType?: string }) => s.sectionType === "LEC");
 
           for (const sA of aLecs) {
-            for (const mA of (sA.Meetings ?? [])) {
-              if (!mA.Days || mA.Days === "TBA" || !mA.Times || mA.Times === "TBA") continue;
+            for (const mA of (sA.meetings ?? [])) {
+              if (!mA.days || mA.days === "TBA" || !mA.times || mA.times === "TBA") continue;
               for (const sB of bLecs) {
-                for (const mB of (sB.Meetings ?? [])) {
-                  if (!mB.Days || mB.Days === "TBA" || !mB.Times || mB.Times === "TBA") continue;
-                  if (!daysOverlap(mA.Days, mB.Days)) continue;
-                  const tA = parseTime(mA.Times), tB = parseTime(mB.Times);
+                for (const mB of (sB.meetings ?? [])) {
+                  if (!mB.days || mB.days === "TBA" || !mB.times || mB.times === "TBA") continue;
+                  if (!daysOverlap(mA.days, mB.days)) continue;
+                  const tA = parseTime(mA.times), tB = parseTime(mB.times);
                   if (!tA || !tB) continue;
                   if (tA.start < tB.end && tA.end > tB.start) {
                     conflicts.push({
-                      course1: a.course_code,
-                      course2: b.course_code,
-                      reason: `${mA.Days} ${mA.Times} overlaps with ${mB.Days} ${mB.Times}`,
+                      course1: a.courseId,
+                      course2: b.courseId,
+                      reason: `${mA.days} ${mA.times} overlaps with ${mB.days} ${mB.times}`,
                     });
                   }
                 }
@@ -474,7 +490,7 @@ export async function executeTool(
         }
       }
 
-      const foundCodes = new Set(courses.map((c) => c.course_code));
+      const foundCodes = new Set(courses.map((c) => c.courseId));
       const notFound = courseCodes.filter((c) => !foundCodes.has(c));
 
       return {

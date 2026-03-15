@@ -4,8 +4,9 @@
  * POST /api/parse-transcript
  *
  * 1. Sends the PDF to Gemini for parsing
- * 2. Saves the parsed courses to the student's MongoDB profile
- * 3. Returns the parsed courses to the client
+ * 2. Looks up real credit counts from the courses collection
+ * 3. Saves the parsed courses to the student's MongoDB profile
+ * 4. Returns the parsed courses to the client
  *
  * Request body:
  *   { pdfBase64: string, userId: string }
@@ -15,13 +16,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
+import { MongoClient, Db } from "mongodb";
 
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 let _client: MongoClient | null = null;
-async function getDb() {
+async function getDb(): Promise<Db> {
   if (!_client) {
     _client = new MongoClient(process.env.DATABASE_URL!);
     await _client.connect();
@@ -35,17 +36,27 @@ interface ParsedCourse {
   semester: string;
 }
 
-// Convert parsed transcript courses into the transcript format
-// the rest of the app (ai-tools.ts check_requirements etc.) expects:
-//   { course_code: "EECS 280", credits: 4, grade: "N/A", term: "Fall 2025" }
-function toTranscriptEntry(c: ParsedCourse) {
-  return {
+// Look up real credit counts from the courses collection using courseId field
+async function toTranscriptEntries(courses: ParsedCourse[], db: Db) {
+  const courseCodes = courses.map((c) => `${c.subject} ${c.number}`);
+
+  const courseDocs = await db
+    .collection("courses")
+    .find({ courseId: { $in: courseCodes } })  // ← courseId matches Prisma schema
+    .project({ courseId: 1, credits: 1 })
+    .toArray();
+
+  const creditMap: Record<string, number> = {};
+  for (const doc of courseDocs) {
+    creditMap[doc.courseId] = doc.credits;  // ← courseId matches Prisma schema
+  }
+
+  return courses.map((c) => ({
     course_code: `${c.subject} ${c.number}`,
-    credits: 0,       // We don't have credit info from the transcript image —
-                      // the AI planner will look up real credits via get_course
+    credits: creditMap[`${c.subject} ${c.number}`] ?? 0,
     grade: "N/A",
     term: c.semester,
-  };
+  }));
 }
 
 export async function POST(req: NextRequest) {
@@ -112,10 +123,9 @@ Rules:
     if (userId) {
       try {
         const db = await getDb();
-        const transcriptEntries = parsed.courses.map(toTranscriptEntry);
+        // Look up real credits from courses collection
+        const transcriptEntries = await toTranscriptEntries(parsed.courses, db);
 
-        // Upsert: create the student doc if it doesn't exist yet,
-        // or overwrite their transcript if it does
         await db.collection("students").updateOne(
           { userId },
           {
@@ -138,7 +148,6 @@ Rules:
           `[parse-transcript] Saved ${transcriptEntries.length} courses for user ${userId}`
         );
       } catch (dbErr) {
-        // Don't fail the whole request if DB save fails — still return parsed data
         console.error("[parse-transcript] DB save failed:", dbErr);
       }
     }
